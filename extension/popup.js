@@ -136,9 +136,12 @@ function applyPopupI18n() {
   const tpTrunc = (a) => a.length > 14 ? a.slice(0, 6) + '…' + a.slice(-4) : a;
   // ETH: MetaMask 유니버설 링크 (앱이면 전송 화면으로, 없으면 안내 페이지)
   const tpEthWalletUrl = () => 'https://metamask.app.link/send/' + TP_ETH + '@1';
-  // SOL: Solana Pay 표준 URI (Phantom/Solflare 모바일이 처리)
-  const tpSolWalletUrl = () => 'solana:' + TP_SOL +
-    '?label=TubePilot&message=' + encodeURIComponent('Support TubePilot');
+  // SOL: Phantom 유니버설 링크 (모바일은 설치된 Phantom 앱의 전송 화면,
+  // 데스크톱은 Phantom 페이지가 열림). solana: 스킴은 데스크톱 크롬에서
+  // 빈 탭만 열리고 지갑으로 연결되지 않아 사용 중단.
+  // Solflare·Rabby는 '주소만 넘겨 전송 화면 열기'용으로 검증된 공식
+  // 딥링크가 없어 임의 URL을 넣지 않고 주소 복사로 안내한다.
+  const tpSolWalletUrl = () => 'https://phantom.app/ul/v1/send?recipient=' + TP_SOL;
   if (typeof window !== 'undefined') {
     window.__tpDonate = { eth: TP_ETH, sol: TP_SOL, ethWalletUrl: tpEthWalletUrl, solWalletUrl: tpSolWalletUrl };
   }

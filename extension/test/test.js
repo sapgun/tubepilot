@@ -179,6 +179,12 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   const belowEl = document.querySelector('#below');
   ok('below 모드: ytpc-inline 클래스', panel.classList.contains('ytpc-inline'));
   ok('below 모드: #below 앞으로 삽입', panel.nextElementSibling === belowEl);
+  // 이전 모드(player 도킹)의 left/top 잔재가 relative 오프셋으로 남아
+  // 패널이 플레이어를 가리던 버그 → below 진입 시 제거되어야 함
+  ok('below 모드: 이전 fixed 위치 잔재 제거',
+    panel.style.left === '' && panel.style.top === '' &&
+    panel.style.right === '' && panel.style.bottom === '',
+    [panel.style.left, panel.style.top, panel.style.right, panel.style.bottom].join(','));
   // 인라인 모드에서 드래그는 동작하지 않아야 함
   const beforeLeft = panel.style.left, beforeTop = panel.style.top;
   head.dispatchEvent(new window.MouseEvent('mousedown',
@@ -292,7 +298,7 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   window.chrome.runtime.sendMessage = (msg, cb) => { capturedMsg = msg; cb({}); };
   document.dispatchEvent(new window.KeyboardEvent('keydown',
     { key: 's', altKey: true, bubbles: true }));
-  await sleep(50);
+  await sleep(350); // 캡처 전 UI 숨김 + 리페인트 대기(120ms) 포함
   ok('Alt+S: TP_CAPTURE 메시지 전송', capturedMsg && capturedMsg.type === 'TP_CAPTURE',
     JSON.stringify(capturedMsg));
   // 캡처 스케일: 실제 이미지 해상도 기준 (dpr 가정 금지)
@@ -304,6 +310,35 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   ok('스크린샷 실패 시 상태 문구',
     document.querySelector('#ytpc-panel .ytpc-status').textContent.includes('실패'),
     document.querySelector('#ytpc-panel .ytpc-status').textContent);
+  // --- 캡처 순간 TubePilot UI 숨김 ---
+  const sc = window.__tpSetCapturing;
+  ok('__tpSetCapturing export', typeof sc === 'function');
+  sc(true);
+  ok('캡처 중: html.ytpc-capturing 클래스 부착',
+    document.documentElement.classList.contains('ytpc-capturing'));
+  sc(false);
+  ok('캡처 후: 클래스 복구',
+    !document.documentElement.classList.contains('ytpc-capturing'));
+  const cssText = fs.readFileSync(path.join(__dirname, '..', 'tubepilot.css'), 'utf8');
+  ok('CSS: 캡처 중 UI 숨김 규칙 (패널·마커·리콜·오버레이·토스트)',
+    cssText.includes('html.ytpc-capturing #ytpc-panel') &&
+    cssText.includes('html.ytpc-capturing .ytpc-marker') &&
+    cssText.includes('html.ytpc-capturing #ytpc-recall') &&
+    cssText.includes('html.ytpc-capturing #ytpc-save-overlay') &&
+    cssText.includes('html.ytpc-capturing #ytpc-lib-overlay') &&
+    cssText.includes('html.ytpc-capturing #ytpc-bm-overlay') &&
+    cssText.includes('html.ytpc-capturing .ytpc-skiptoast'));
+  // 캡처 진행 중에는 클래스가 붙어 있다가 완료 후 떨어짐
+  window.chrome.runtime.sendMessage = (msg, cb) =>
+    setTimeout(() => cb({ dataUrl: 'data:image/png;base64,AAA' }), 10);
+  document.dispatchEvent(new window.KeyboardEvent('keydown',
+    { key: 's', altKey: true, bubbles: true }));
+  await sleep(60); // rAF는 지났고 120ms 캡처 타이머는 대기 중
+  ok('캡처 대기 중: UI 숨김 클래스 유지',
+    document.documentElement.classList.contains('ytpc-capturing'));
+  await sleep(400);
+  ok('캡처 완료 후: UI 숨김 클래스 복구',
+    !document.documentElement.classList.contains('ytpc-capturing'));
   // --- 스크린샷 저장 모드: 전체 경로 스텁 ---
   window.ClipboardItem = function (m) { this.mime = m; };
   let clipboardWrites = [];
@@ -335,7 +370,7 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   await window.chrome.storage.local.set({ tp_cfg: { shotMode: 'clipboard' } });
   clipboardWrites = [];
   fireShot();
-  await sleep(80);
+  await sleep(350);
   ok('스크린샷 clipboard 모드: 클립보드에 PNG 복사',
     clipboardWrites.length === 1 && clipboardWrites[0][0] instanceof window.ClipboardItem &&
     clipboardWrites[0][0].mime['image/png'],
@@ -345,7 +380,7 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   await window.chrome.storage.local.set({ tp_cfg: { shotMode: 'both' } });
   clipboardWrites = [];
   fireShot();
-  await sleep(80);
+  await sleep(350);
   ok('스크린샷 both 모드: 클립보드+다운로드',
     clipboardWrites.length === 1 && !!document.querySelector('a[download]'),
     'writes=' + clipboardWrites.length);
@@ -353,7 +388,7 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   await window.chrome.storage.local.set({ tp_cfg: { shotMode: 'download' } });
   clipboardWrites = [];
   fireShot();
-  await sleep(80);
+  await sleep(350);
   ok('스크린샷 download 모드: 다운로드만',
     clipboardWrites.length === 0 && !!document.querySelector('a[download]'),
     'writes=' + clipboardWrites.length);
@@ -398,7 +433,7 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   window.chrome.runtime.sendMessage = (msg, cb) => { cap2 = msg; cb({}); };
   document.dispatchEvent(new window.KeyboardEvent('keydown',
     { key: 'k', altKey: true, bubbles: true }));
-  await sleep(50);
+  await sleep(350); // 캡처 전 UI 숨김 + 리페인트 대기 포함
   ok('단축키 변경: Alt+K 캡처 동작', cap2 && cap2.type === 'TP_CAPTURE', JSON.stringify(cap2));
   cap2 = null;
   document.dispatchEvent(new window.KeyboardEvent('keydown',

@@ -84,8 +84,14 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   ok('후원: SOL 주소', dn && dn.sol === 'BzsE914REG8op1uonEv7rz2NxiS9k3Jcrivz84NdNd5H', dn && dn.sol);
   ok('후원: ETH 지갑 URL', dn && dn.ethWalletUrl() ===
     'https://metamask.app.link/send/0xe8F1B706223652E672ffF62cE1FEf9c7C98eFc68@1', dn && dn.ethWalletUrl());
-  ok('후원: SOL 지갑 URL', dn && dn.solWalletUrl().startsWith('solana:BzsE914REG8op1uonEv7rz2NxiS9k3Jcrivz84NdNd5H?'),
+  ok('후원: SOL 지갑 URL = Phantom 유니버설 링크', dn && dn.solWalletUrl() ===
+    'https://phantom.app/ul/v1/send?recipient=BzsE914REG8op1uonEv7rz2NxiS9k3Jcrivz84NdNd5H',
     dn && dn.solWalletUrl());
+  ok('후원: SOL 지갑 URL이 빈 탭만 여는 solana: 스킴이 아님',
+    dn && !dn.solWalletUrl().startsWith('solana:'), dn && dn.solWalletUrl());
+  ok('후원: 지갑 버튼 라벨 i18n 키',
+    document.getElementById('walletEth').getAttribute('data-i18n') === 'wallet_metamask' &&
+    document.getElementById('walletSol').getAttribute('data-i18n') === 'wallet_phantom');
   document.getElementById('walletEth').click();
   await sleep(20);
   ok('후원: 지갑 버튼 → 탭 열기', createdUrl === dn.ethWalletUrl(), createdUrl);

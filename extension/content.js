@@ -327,6 +327,14 @@
           anchor.parentNode.insertBefore(panel, anchor);
         }
         panel.classList.add('ytpc-inline');
+        // 인라인(relative) 모드에서는 이전 fixed/드래그 위치 잔재를 반드시 제거.
+        // style.left/top이 남아 있으면 relative 오프셋으로 작용해 패널이
+        // 플레이어 위로 밀려 올라가 영상을 가린다.
+        panel.style.position = '';
+        panel.style.left = '';
+        panel.style.top = '';
+        panel.style.right = '';
+        panel.style.bottom = '';
         return;
       }
       // 앵커가 없으면(시청 페이지 아님) 우측 하단으로 폴백
@@ -625,13 +633,37 @@
     const h = Math.min(r.height, window.innerHeight - y);
     if (w <= 0 || h <= 0) { setStatus(T('shot_no_video')); return; }
     if (!chrome.runtime || !chrome.runtime.sendMessage) { setStatus(T('shot_fail')); return; }
-    chrome.runtime.sendMessage({ type: 'TP_CAPTURE' }, (res) => {
-      if ((chrome.runtime && chrome.runtime.lastError) || !res || !res.dataUrl) {
-        setStatus(T('shot_fail')); return;
-      }
-      cropAndDownload(res.dataUrl, x, y, w, h); // CSS 픽셀 그대로 전달
-    });
+    // 캡처되는 영상 위에 TubePilot UI(패널·마커·배너·다이얼로그)가 겹쳐 찍히지
+    // 않도록 캡처 순간에만 숨겼다가 반드시 복구한다.
+    tpSetCapturing(true);
+    const restore = () => tpSetCapturing(false);
+    const doCapture = () => {
+      let responded = false;
+      try {
+        chrome.runtime.sendMessage({ type: 'TP_CAPTURE' }, (res) => {
+          responded = true;
+          restore();
+          if ((chrome.runtime && chrome.runtime.lastError) || !res || !res.dataUrl) {
+            setStatus(T('shot_fail')); return;
+          }
+          cropAndDownload(res.dataUrl, x, y, w, h); // CSS 픽셀 그대로 전달
+        });
+      } catch (e) { restore(); setStatus(T('shot_fail')); return; }
+      // 응답이 오지 않아도 UI가 숨은 채로 남지 않도록 안전 복구
+      setTimeout(() => { if (!responded) restore(); }, 3000);
+    };
+    // 숨김이 실제 렌더에 반영된 뒤 캡처되도록 리페인트 대기
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => setTimeout(doCapture, 120));
+    } else {
+      setTimeout(doCapture, 150);
+    }
   }
+  // 캡처 중 TubePilot UI 표시/숨김 (테스트용 export)
+  function tpSetCapturing(on) {
+    try { document.documentElement.classList.toggle('ytpc-capturing', !!on); } catch (e) {}
+  }
+  if (typeof window !== 'undefined') window.__tpSetCapturing = tpSetCapturing;
   // 캡처 이미지의 실제 해상도를 재서 스케일 계산 (devicePixelRatio 가정 금지:
   // 캡처 API의 실제 반환 해상도가 환경마다 다를 수 있음)
   function tpCaptureScale(imgW, innerW) {
