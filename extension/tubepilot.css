@@ -20,8 +20,18 @@
 #ytpc-panel .ytpc-posrow select { margin-left: auto; background: #272727; color: #fff;
   border: 1px solid #4a4a4a; border-radius: 6px; font-size: 11px; padding: 2px 4px; }
 #ytpc-panel.ytpc-inline { position: relative; left: auto; top: auto; right: auto; bottom: auto;
-  width: 100%; max-width: 560px; margin: 12px 0; z-index: 10; }
-#ytpc-panel.ytpc-inline .ytpc-head { cursor: pointer; }
+  width: 100%; max-width: 100%; margin: 12px 0; z-index: 10; }
+#ytpc-panel.ytpc-inline .ytpc-head { cursor: pointer; padding: 6px 12px; }
+#ytpc-panel.ytpc-inline .ytpc-body { display: flex; flex-wrap: wrap; align-items: center;
+  gap: 6px 14px; padding: 8px 12px 10px; }
+#ytpc-panel.ytpc-inline .ytpc-status { order: -1; flex: 1 1 100%; margin: 0; padding: 0; min-height: 0; }
+#ytpc-panel.ytpc-inline label.ytpc-row { margin: 0; white-space: nowrap; }
+#ytpc-panel.ytpc-inline .ytpc-cats { display: contents; margin: 0; }
+#ytpc-panel.ytpc-inline .ytpc-cats label { margin: 0; font-size: 11px; white-space: nowrap; }
+#ytpc-panel.ytpc-inline .ytpc-zoomrow { display: contents; margin: 0; }
+#ytpc-panel.ytpc-inline .ytpc-zoomrow button { flex: none; padding: 3px 12px; }
+#ytpc-panel.ytpc-inline .ytpc-posrow select { margin-left: 0; }
+#ytpc-panel.ytpc-inline .ytpc-hint { display: none; }
 #ytpc-panel input[type=range] { flex: 1; accent-color: #3b82f6; min-width: 80px; }
 #ytpc-panel .ytpc-opval { color: #aaa; font-size: 11px; min-width: 38px; text-align: right; }
 .ytpc-skiptoast { position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%) translateY(8px);
