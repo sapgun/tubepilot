@@ -15,6 +15,8 @@
     panelPos: null,       // {left, top} 수동 드래그 위치 (있으면 모드보다 우선)
     opacity: 100,         // 패널 투명도 (%)
     hideComments: false,  // 댓글 숨기기 (몰입 모드)
+    shotMode: 'download', // 스크린샷 저장 방식: download | clipboard | both
+    hotkeys: { shot: 'Alt+S', comments: 'Alt+H', save: 'Alt+B' }, // 단축키 (팝업에서 변경 가능)
     cats: {
       sponsor: true,
       intro: true,
@@ -526,13 +528,16 @@
     const bLib = document.createElement('button'); bLib.textContent = T('btn_list');
     const bSave = document.createElement('button'); bSave.textContent = T('btn_save');
     const bShot = document.createElement('button'); bShot.textContent = T('btn_shot');
+    const bBm = document.createElement('button'); bBm.textContent = T('btn_bookmark');
     bLib.title = T('title_list');
     bSave.title = T('title_save');
     bShot.title = T('title_shot');
+    bBm.title = T('bm_title');
     bLib.addEventListener('click', openLibrary);
     bSave.addEventListener('click', () => openSaveDialog());
     bShot.addEventListener('click', takeScreenshot);
-    libRow.appendChild(bLib); libRow.appendChild(bSave); libRow.appendChild(bShot);
+    bBm.addEventListener('click', openBookmarkDialog);
+    libRow.appendChild(bLib); libRow.appendChild(bSave); libRow.appendChild(bShot); libRow.appendChild(bBm);
     body.appendChild(libRow);
 
     const hint = document.createElement('div');
@@ -541,7 +546,8 @@
     body.appendChild(hint);
     const keyHint = document.createElement('div');
     keyHint.className = 'ytpc-hint';
-    keyHint.textContent = T('hint_keys');
+    const hk0 = tpHotkeys();
+    keyHint.textContent = T('hint_keys', { shot: hk0.shot, comments: hk0.comments, save: hk0.save });
     body.appendChild(keyHint);
 
     statusEl = document.createElement('div');
@@ -567,7 +573,7 @@
     const data = {
       app: 'TubePilot', format: 1,
       exportedAt: new Date().toISOString(),
-      cfg: cfg, library: library
+      cfg: cfg, library: library, bookmarks: bmLoad()
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
@@ -595,6 +601,7 @@
       chrome.storage.local.set({ tp_cfg: newCfg }, () => {
         cfg = newCfg;
         libWrite(data.library);
+        if (Array.isArray(data.bookmarks)) bmWrite(data.bookmarks);
         const p = document.getElementById('ytpc-panel');
         if (p) p.remove();
         try { buildPanel(); } catch (e) {}
@@ -632,6 +639,32 @@
     return imgW / innerW;
   }
   if (typeof window !== 'undefined') window.__tpCaptureScale = tpCaptureScale;
+  function finishShot(canvas) {
+    canvas.toBlob((blob) => {
+      if (!blob) { setStatus(T('shot_fail')); return; }
+      const mode = cfg.shotMode === 'clipboard' ? 'clipboard'
+        : cfg.shotMode === 'both' ? 'both' : 'download';
+      const canCopy = typeof window.ClipboardItem !== 'undefined' &&
+        navigator.clipboard && typeof navigator.clipboard.write === 'function';
+      const doDownload = () => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        const d = new Date(), p2 = (n) => String(n).padStart(2, '0');
+        a.download = 'tubepilot-' + (getVideoId() || 'shot') + '-' +
+          d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' +
+          p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.png';
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+        setStatus(T('shot_saved'));
+      };
+      if (mode === 'download' || !canCopy) { doDownload(); return; }
+      navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(
+        () => setStatus(T(mode === 'both' ? 'shot_saved' : 'shot_copied')),
+        () => doDownload() // 클립보드 실패 → 다운로드 폴백
+      );
+      if (mode === 'both') doDownload();
+    }, 'image/png');
+  }
   function cropAndDownload(dataUrl, x, y, w, h) {
     const img = new Image();
     img.onload = () => {
@@ -647,18 +680,7 @@
         const c = document.createElement('canvas');
         c.width = sw; c.height = sh;
         c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-        c.toBlob((blob) => {
-          if (!blob) { setStatus(T('shot_fail')); return; }
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          const d = new Date(), p2 = (n) => String(n).padStart(2, '0');
-          a.download = 'tubepilot-' + (getVideoId() || 'shot') + '-' +
-            d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' +
-            p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.png';
-          document.body.appendChild(a); a.click();
-          setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-          setStatus(T('shot_saved'));
-        }, 'image/png');
+        finishShot(c);
       } catch (e) { setStatus(T('shot_fail')); }
     };
     img.onerror = () => setStatus(T('shot_fail'));
@@ -666,16 +688,42 @@
   }
 
   /* ================= 단축키 ================= */
-  // Alt+S 캡처 · Alt+H 댓글 숨기기 토글 · Alt+B 다시보기 저장
+  // "Alt+Shift+S" 형태 파싱 → {ctrl, alt, shift, meta, key}
+  function tpParseHotkey(str) {
+    const hk = { ctrl: false, alt: false, shift: false, meta: false, key: '' };
+    for (const p of String(str || '').split('+')) {
+      const u = p.trim().toUpperCase();
+      if (u === 'CTRL' || u === 'CONTROL') hk.ctrl = true;
+      else if (u === 'ALT') hk.alt = true;
+      else if (u === 'SHIFT') hk.shift = true;
+      else if (u === 'META' || u === 'CMD' || u === 'COMMAND' || u === 'WIN') hk.meta = true;
+      else if (u) hk.key = u;
+    }
+    return hk;
+  }
+  function tpMatchHotkey(e, str) {
+    const hk = tpParseHotkey(str);
+    if (!hk.key) return false;
+    if (!!e.ctrlKey !== hk.ctrl || !!e.altKey !== hk.alt ||
+        !!e.shiftKey !== hk.shift || !!e.metaKey !== hk.meta) return false;
+    const k = String(e.key || '').toUpperCase();
+    return k === hk.key;
+  }
+  if (typeof window !== 'undefined') {
+    window.__tpHotkey = { parse: tpParseHotkey, match: tpMatchHotkey };
+  }
+  function tpHotkeys() {
+    return Object.assign({}, DEFAULTS.hotkeys, cfg.hotkeys || {});
+  }
+  // Alt+S 캡처 · Alt+H 댓글 숨기기 토글 · Alt+B 다시보기 저장 (팝업에서 변경 가능)
   function onHotkey(e) {
-    if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     const t = e.target;
     if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
     if (t && t.isContentEditable) return;
-    const k = (e.key || '').toLowerCase();
-    if (k === 's') { e.preventDefault(); takeScreenshot(); }
-    else if (k === 'h') { e.preventDefault(); toggleComments(); }
-    else if (k === 'b') { e.preventDefault(); openSaveDialog(); }
+    const hk = tpHotkeys();
+    if (tpMatchHotkey(e, hk.shot)) { e.preventDefault(); takeScreenshot(); }
+    else if (tpMatchHotkey(e, hk.comments)) { e.preventDefault(); toggleComments(); }
+    else if (tpMatchHotkey(e, hk.save)) { e.preventDefault(); openSaveDialog(); }
   }
   function toggleComments() {
     cfg.hideComments = !cfg.hideComments;
@@ -805,12 +853,104 @@
     if (saveOverlay) { saveOverlay.remove(); saveOverlay = null; }
   }
 
+  /* ================= 구간 북마크 ================= */
+  let bookmarks = [];
+  let bmStopAt = null; // {videoId, end} — 점프 후 구간 끝에서 자동 일시정지
+  function bmLoad() { return bookmarks; }
+  function bmWrite(list) {
+    bookmarks = list;
+    try { chrome.storage.local.set({ tp_bookmarks: list }); } catch (e) {}
+  }
+  function tpFmtTime(sec) {
+    sec = Math.max(0, Math.floor(sec || 0));
+    return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+  }
+  function tpParseTime(str) {
+    const t = String(str || '').trim();
+    if (!t) return null;
+    if (/^\d+(\.\d+)?$/.test(t)) return parseFloat(t);
+    const m = t.match(/^(?:(\d+):)?([0-5]?\d):([0-5]\d)$/);
+    if (!m) return null;
+    return ((parseInt(m[1] || '0', 10) * 60) + parseInt(m[2], 10)) * 60 + parseInt(m[3], 10);
+  }
+  if (typeof window !== 'undefined') window.__tpBm = {
+    fmt: tpFmtTime, parse: tpParseTime,
+    get stopAt() { return bmStopAt; },
+  };
+  let bmOverlay = null;
+  function openBookmarkDialog() {
+    const v = getVideo();
+    const meta = getVideoMeta();
+    if (!v || !meta) { setStatus(T('st_no_meta')); return; }
+    closeBookmarkDialog();
+    const now = v.currentTime || 0;
+    bmOverlay = document.createElement('div');
+    bmOverlay.id = 'ytpc-bm-overlay';
+    bmOverlay.innerHTML =
+      '<div id="ytpc-bm">' +
+        '<h3>' + T('bm_title') + '</h3>' +
+        '<div class="ytpc-save-title"></div>' +
+        '<div class="ytpc-bm-timerow">' +
+          '<input type="text" id="ytpc-bm-start" value="' + tpFmtTime(now) + '" placeholder="m:ss">' +
+          '<button id="ytpc-bm-now-start">' + T('bm_set_start') + '</button>' +
+        '</div>' +
+        '<div class="ytpc-bm-timerow">' +
+          '<input type="text" id="ytpc-bm-end" value="' + tpFmtTime(now + 30) + '" placeholder="m:ss">' +
+          '<button id="ytpc-bm-now-end">' + T('bm_set_end') + '</button>' +
+        '</div>' +
+        '<input type="text" id="ytpc-bm-memo" placeholder="' + escapeHtml(T('bm_memo_ph')) + '">' +
+        '<p class="ytpc-bm-err" id="ytpc-bm-err"></p>' +
+        '<div class="ytpc-save-btns">' +
+          '<button class="ytpc-btn-ok">' + T('bm_save') + '</button>' +
+          '<button class="ytpc-btn-cancel">' + T('btn_cancel') + '</button>' +
+        '</div>' +
+      '</div>';
+    bmOverlay.querySelector('.ytpc-save-title').textContent = meta.title || meta.id;
+    const startInput = bmOverlay.querySelector('#ytpc-bm-start');
+    const endInput = bmOverlay.querySelector('#ytpc-bm-end');
+    const memoInput = bmOverlay.querySelector('#ytpc-bm-memo');
+    const errEl = bmOverlay.querySelector('#ytpc-bm-err');
+    bmOverlay.querySelector('#ytpc-bm-now-start').addEventListener('click', () => {
+      const vv = getVideo(); if (vv) startInput.value = tpFmtTime(vv.currentTime || 0);
+      errEl.textContent = '';
+    });
+    bmOverlay.querySelector('#ytpc-bm-now-end').addEventListener('click', () => {
+      const vv = getVideo(); if (vv) endInput.value = tpFmtTime(vv.currentTime || 0);
+      errEl.textContent = '';
+    });
+    bmOverlay.querySelector('.ytpc-btn-ok').addEventListener('click', () => {
+      const start = tpParseTime(startInput.value), end = tpParseTime(endInput.value);
+      if (start == null || end == null || end <= start) { errEl.textContent = T('bm_invalid'); return; }
+      const list = bmLoad().slice();
+      list.unshift({
+        id: 'bm' + Date.now().toString(36),
+        videoId: meta.id, title: meta.title || meta.id,
+        start: Math.floor(start), end: Math.floor(end),
+        memo: memoInput.value.trim().slice(0, 500),
+        createdAt: Date.now(),
+      });
+      bmWrite(list);
+      closeBookmarkDialog();
+      setStatus(T('bm_saved'));
+    });
+    bmOverlay.querySelector('.ytpc-btn-cancel').addEventListener('click', closeBookmarkDialog);
+    bmOverlay.addEventListener('click', e => { if (e.target === bmOverlay) closeBookmarkDialog(); });
+    document.body.appendChild(bmOverlay);
+  }
+  function closeBookmarkDialog() {
+    if (bmOverlay) { bmOverlay.remove(); bmOverlay = null; }
+  }
+  function tpBmJump(b) {
+    if (b.end > b.start) bmStopAt = { videoId: b.videoId, end: b.end };
+    location.href = 'https://www.youtube.com/watch?v=' + b.videoId + '&t=' + Math.floor(b.start) + 's';
+  }
+
   /* ---------- 라이브러리 목록 ---------- */
   let libOverlay = null;
-  const libFilter = { q: '', tag: null };
+  const libFilter = { q: '', tag: null, tab: 'videos' };
   function openLibrary() {
     closeLibrary();
-    libFilter.q = ''; libFilter.tag = null;
+    libFilter.q = ''; libFilter.tag = null; libFilter.tab = 'videos';
     libOverlay = document.createElement('div');
     libOverlay.id = 'ytpc-lib-overlay';
     libOverlay.innerHTML =
@@ -821,12 +961,26 @@
           '<button id="ytpc-lib-import" title="' + escapeHtml(T('title_restore')) + '">' + T('btn_restore') + '</button>' +
           '<button id="ytpc-lib-close">' + T('btn_close') + '</button>' +
         '</div>' +
+        '<div class="ytpc-lib-tabs">' +
+          '<button data-tab="videos" class="on">' + T('bm_tab_videos') + '</button>' +
+          '<button data-tab="marks">' + T('bm_tab_marks') + '</button>' +
+        '</div>' +
         '<div class="ytpc-tagbar" id="ytpc-lib-tags"></div>' +
         '<div class="ytpc-lib-list" id="ytpc-lib-list"></div>' +
       '</div>';
     document.body.appendChild(libOverlay);
     const q = libOverlay.querySelector('#ytpc-lib-q');
     q.addEventListener('input', () => { libFilter.q = q.value.trim().toLowerCase(); renderLibList(); });
+    libOverlay.querySelectorAll('.ytpc-lib-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        libFilter.tab = btn.getAttribute('data-tab');
+        libOverlay.querySelectorAll('.ytpc-lib-tabs button').forEach(b2 =>
+          b2.classList.toggle('on', b2 === btn));
+        const tagbar = libOverlay.querySelector('#ytpc-lib-tags');
+        if (tagbar) tagbar.style.display = libFilter.tab === 'marks' ? 'none' : '';
+        renderLibList();
+      });
+    });
     libOverlay.querySelector('#ytpc-lib-close').addEventListener('click', closeLibrary);
     libOverlay.querySelector('#ytpc-lib-export').addEventListener('click', exportBackup);
     const impBtn = libOverlay.querySelector('#ytpc-lib-import');
@@ -889,9 +1043,10 @@
   function renderLibList() {
     const list = libOverlay && libOverlay.querySelector('#ytpc-lib-list');
     if (!list) return;
+    list.innerHTML = '';
+    if ((libFilter.tab || 'videos') === 'marks') { renderBmList(list); return; }
     const videos = Object.values(libLoad()).filter(libMatches)
       .sort((a, b) => b.savedAt - a.savedAt);
-    list.innerHTML = '';
     if (!videos.length) {
       list.innerHTML = '<div class="ytpc-empty">' + T('lib_empty') + '<br>' +
         T('lib_empty_hint') + '</div>';
@@ -931,6 +1086,38 @@
         if (currentVideoId === v.id) hideRecall();
       });
       list.appendChild(card);
+    });
+  }
+  function renderBmList(list) {
+    const marks = bmLoad().filter(b => {
+      if (!libFilter.q) return true;
+      return [b.title, b.memo || ''].join(' ').toLowerCase().includes(libFilter.q);
+    });
+    if (!marks.length) {
+      list.innerHTML = '<div class="ytpc-empty">' + T('bm_empty') + '</div>';
+      return;
+    }
+    marks.forEach(b => {
+      const row = document.createElement('div');
+      row.className = 'ytpc-bmrow';
+      row.innerHTML =
+        '<div class="ytpc-bmrow-main"><div class="ytpc-bmrow-title"></div>' +
+        '<div class="ytpc-bmrow-time">' + tpFmtTime(b.start) + ' – ' + tpFmtTime(b.end) + '</div>' +
+        (b.memo ? '<div class="ytpc-bmrow-memo"></div>' : '') + '</div>' +
+        '<div class="ytpc-bmrow-actions"><button data-act="jump">' + T('bm_jump') + '</button>' +
+        '<button data-act="del">' + T('bm_del') + '</button></div>';
+      row.querySelector('.ytpc-bmrow-title').textContent = b.title;
+      const memoEl = row.querySelector('.ytpc-bmrow-memo');
+      if (memoEl) memoEl.textContent = b.memo;
+      row.querySelector('[data-act="jump"]').addEventListener('click', () => {
+        closeLibrary(); tpBmJump(b);
+      });
+      row.querySelector('[data-act="del"]').addEventListener('click', () => {
+        if (!confirm(T('confirm_del_item', { title: b.title.slice(0, 30) }))) return;
+        bmWrite(bmLoad().filter(x => x.id !== b.id));
+        renderLibList();
+      });
+      list.appendChild(row);
     });
   }
 
@@ -987,6 +1174,15 @@
     }
     handleAds();
     handleSponsorSkip();
+    // 구간 북마크 점프 후 끝에서 자동 일시정지
+    if (bmStopAt && currentVideoId === bmStopAt.videoId) {
+      const pv = getVideo();
+      if (pv && !pv.paused && pv.currentTime >= bmStopAt.end) {
+        pv.pause();
+        bmStopAt = null;
+        setStatus(T('bm_stop_end'));
+      }
+    }
     // 패널이 유튜브 리렌더로 사라졌으면 복구
     if (!document.getElementById('ytpc-panel')) {
       try { buildPanel(); } catch (e) {}
@@ -1026,8 +1222,19 @@
             tpSetLang(tpPickLang(changes.tp_lang.newValue, navigator.language));
             const p = document.getElementById('ytpc-panel');
             if (p) p.remove();
-            closeSaveDialog(); closeLibrary(); hideRecall();
+            closeSaveDialog(); closeLibrary(); hideRecall(); closeBookmarkDialog();
             try { buildPanel(); } catch (e) {}
+          }
+          // 팝업에서 설정 변경 → 즉시 반영 (새로고침 불필요)
+          if (area === 'local' && changes && changes.tp_cfg) {
+            const oldHk = JSON.stringify((cfg.hotkeys || {}));
+            cfg = Object.assign({}, DEFAULTS, changes.tp_cfg.newValue || {});
+            cfg.cats = Object.assign({}, DEFAULTS.cats, cfg.cats || {});
+            // 단축키가 바뀌면 힌트 문구 갱신을 위해 패널 리빌드
+            if (JSON.stringify(cfg.hotkeys || {}) !== oldHk) {
+              const p2 = document.getElementById('ytpc-panel');
+              if (p2) { p2.remove(); try { buildPanel(); } catch (e2) {} }
+            }
           }
         });
       }
@@ -1037,11 +1244,12 @@
   // MV3 부트: 저장소에서 설정/라이브러리 로드 후 시작
   (async function boot() {
     try {
-      const s = await chrome.storage.local.get(['tp_enabled', 'tp_cfg', 'tp_library', 'tp_lang']);
+      const s = await chrome.storage.local.get(['tp_enabled', 'tp_cfg', 'tp_library', 'tp_lang', 'tp_bookmarks']);
       tpSetLang(tpPickLang(s.tp_lang, navigator.language));
       if (s.tp_enabled === false) { console.log('[TubePilot] disabled'); return; }
       cfg = Object.assign({}, DEFAULTS, s.tp_cfg || {});
       cfg.cats = Object.assign({}, DEFAULTS.cats, cfg.cats || {});
+      bookmarks = Array.isArray(s.tp_bookmarks) ? s.tp_bookmarks : [];
       library = (s.tp_library && s.tp_library.videos) ? s.tp_library.videos : {};
     } catch (e) {
       console.error('[TubePilot] storage load failed:', e);

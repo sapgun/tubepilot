@@ -304,6 +304,61 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   ok('스크린샷 실패 시 상태 문구',
     document.querySelector('#ytpc-panel .ytpc-status').textContent.includes('실패'),
     document.querySelector('#ytpc-panel .ytpc-status').textContent);
+  // --- 스크린샷 저장 모드: 전체 경로 스텁 ---
+  window.ClipboardItem = function (m) { this.mime = m; };
+  let clipboardWrites = [];
+  Object.defineProperty(window.navigator, 'clipboard', {
+    value: { write: (items) => { clipboardWrites.push(items); return Promise.resolve(); } },
+    configurable: true,
+  });
+  window.HTMLCanvasElement.prototype.getContext = () => ({ drawImage() {} });
+  window.HTMLCanvasElement.prototype.toBlob = function (cb) {
+    cb(new window.Blob(['fake'], { type: 'image/png' }));
+  };
+  window.Image = function () {
+    const o = {};
+    setTimeout(() => {
+      o.naturalWidth = 1280; o.naturalHeight = 720;
+      if (o.onload) o.onload();
+    }, 5);
+    return o;
+  };
+  window.URL.createObjectURL = () => 'blob:fake';
+  window.URL.revokeObjectURL = () => {};
+  const shotStatus = () => document.querySelector('#ytpc-panel .ytpc-status').textContent;
+  const fireShot = () => {
+    window.chrome.runtime.sendMessage = (msg, cb) => cb({ dataUrl: 'data:image/png;base64,AAA' });
+    document.dispatchEvent(new window.KeyboardEvent('keydown',
+      { key: 's', altKey: true, bubbles: true }));
+  };
+  // clipboard 모드
+  await window.chrome.storage.local.set({ tp_cfg: { shotMode: 'clipboard' } });
+  clipboardWrites = [];
+  fireShot();
+  await sleep(80);
+  ok('스크린샷 clipboard 모드: 클립보드에 PNG 복사',
+    clipboardWrites.length === 1 && clipboardWrites[0][0] instanceof window.ClipboardItem &&
+    clipboardWrites[0][0].mime['image/png'],
+    'writes=' + clipboardWrites.length);
+  ok('스크린샷 clipboard 모드: 안내 문구', shotStatus().includes('클립보드'), shotStatus());
+  // both 모드: 클립보드 + 다운로드 둘 다
+  await window.chrome.storage.local.set({ tp_cfg: { shotMode: 'both' } });
+  clipboardWrites = [];
+  fireShot();
+  await sleep(80);
+  ok('스크린샷 both 모드: 클립보드+다운로드',
+    clipboardWrites.length === 1 && !!document.querySelector('a[download]'),
+    'writes=' + clipboardWrites.length);
+  // download 모드 (기본): 앵커 다운로드만
+  await window.chrome.storage.local.set({ tp_cfg: { shotMode: 'download' } });
+  clipboardWrites = [];
+  fireShot();
+  await sleep(80);
+  ok('스크린샷 download 모드: 다운로드만',
+    clipboardWrites.length === 0 && !!document.querySelector('a[download]'),
+    'writes=' + clipboardWrites.length);
+  ok('스크린샷 download 모드: 안내 문구', shotStatus().includes('저장'), shotStatus());
+  await window.chrome.storage.local.set({ tp_cfg: {} });
   // Alt+H → 댓글 숨기기 토글
   const cmtBox2 = [...document.querySelectorAll('#ytpc-panel label.ytpc-row')]
     .find(l => l.textContent.includes('댓글 숨기기')).querySelector('input');
@@ -322,6 +377,115 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
     { key: 'b', altKey: true, bubbles: true }));
   await sleep(50);
   ok('Alt+B: 저장 다이얼로그 열림', !!document.querySelector('#ytpc-save-overlay'));
+  // --- 단축키 파싱/매칭 유닛 ---
+  const TH = window.__tpHotkey;
+  const p1 = TH.parse('Alt+Shift+S');
+  ok('단축키 파싱', p1.alt && p1.shift && !p1.ctrl && p1.key === 'S', JSON.stringify(p1));
+  ok('단축키 매칭', TH.match({ altKey: true, key: 's' }, 'Alt+S') === true);
+  ok('단축키 불일치(조합키 다름)', TH.match({ altKey: true, shiftKey: true, key: 's' }, 'Alt+S') === false);
+  ok('단축키 불일치(키 다름)', TH.match({ altKey: true, key: 'h' }, 'Alt+S') === false);
+  ok('단축키 매칭(Ctrl+Shift+K)', TH.match({ ctrlKey: true, shiftKey: true, key: 'k' }, 'Ctrl+Shift+K') === true);
+  // --- 단축키 변경 → 새 키 동작 + 힌트 갱신 ---
+  await window.chrome.storage.local.set({
+    tp_cfg: { hotkeys: { shot: 'Alt+K', comments: 'Alt+H', save: 'Alt+B' } },
+  });
+  await sleep(80); // onChanged → 패널 리빌드
+  const hintAfter = [...document.querySelectorAll('#ytpc-panel .ytpc-hint')]
+    .find(el => el.textContent.includes('단축키'));
+  ok('단축키 변경: 힌트 문구 갱신', !!hintAfter && hintAfter.textContent.includes('Alt+K'),
+    hintAfter && hintAfter.textContent);
+  let cap2 = null;
+  window.chrome.runtime.sendMessage = (msg, cb) => { cap2 = msg; cb({}); };
+  document.dispatchEvent(new window.KeyboardEvent('keydown',
+    { key: 'k', altKey: true, bubbles: true }));
+  await sleep(50);
+  ok('단축키 변경: Alt+K 캡처 동작', cap2 && cap2.type === 'TP_CAPTURE', JSON.stringify(cap2));
+  cap2 = null;
+  document.dispatchEvent(new window.KeyboardEvent('keydown',
+    { key: 's', altKey: true, bubbles: true }));
+  await sleep(50);
+  ok('단축키 변경: 기존 Alt+S 무시', cap2 === null, JSON.stringify(cap2));
+  // 원복
+  await window.chrome.storage.local.set({ tp_cfg: {} });
+  await sleep(80);
+  // --- 구간 북마크 ---
+  const BM = window.__tpBm;
+  ok('북마크 시간 파싱', BM.parse('1:30') === 90 && BM.parse('90') === 90 && BM.parse('1:02:03') === 3723,
+    [BM.parse('1:30'), BM.parse('90'), BM.parse('1:02:03')].join(','));
+  ok('북마크 시간 파싱 실패', BM.parse('abc') === null && BM.parse('') === null);
+  ok('북마크 시간 포맷', BM.fmt(90) === '1:30' && BM.fmt(3723) === '62:03',
+    BM.fmt(90) + ' / ' + BM.fmt(3723));
+  // 다이얼로그 → 저장
+  video.currentTime = 65;
+  const bmBtn = [...document.querySelectorAll('#ytpc-panel button')]
+    .find(b => b.textContent.includes('🔖'));
+  ok('북마크 버튼 존재', !!bmBtn, bmBtn && bmBtn.textContent);
+  bmBtn.click();
+  await sleep(50);
+  ok('북마크 다이얼로그 열림', !!document.querySelector('#ytpc-bm-overlay'));
+  const bmStartEl = document.querySelector('#ytpc-bm-start');
+  ok('북마크 시작점 기본값', bmStartEl && bmStartEl.value === '1:05', bmStartEl && bmStartEl.value);
+  document.querySelector('#ytpc-bm-end').value = '2:00';
+  document.querySelector('#ytpc-bm-memo').value = '하이라이트';
+  document.querySelector('#ytpc-bm .ytpc-btn-ok').click();
+  await sleep(50);
+  const savedBms = store.tp_bookmarks || [];
+  ok('북마크 저장', savedBms.length === 1 && savedBms[0].start === 65 && savedBms[0].end === 120 &&
+    savedBms[0].memo === '하이라이트' && savedBms[0].videoId === 'TEST1234567',
+    JSON.stringify(savedBms[0]));
+  ok('북마크 저장 안내', document.querySelector('#ytpc-panel .ytpc-status').textContent.includes('북마크'),
+    document.querySelector('#ytpc-panel .ytpc-status').textContent);
+  // 유효성 검사
+  bmBtn.click();
+  await sleep(50);
+  document.querySelector('#ytpc-bm-end').value = '0:30';
+  document.querySelector('#ytpc-bm .ytpc-btn-ok').click();
+  await sleep(30);
+  ok('북마크 유효성 검사', document.querySelector('#ytpc-bm-err').textContent.length > 0,
+    document.querySelector('#ytpc-bm-err').textContent);
+  document.querySelector('#ytpc-bm .ytpc-btn-cancel').click();
+  await sleep(30);
+  ok('북마크 다이얼로그 닫힘', !document.querySelector('#ytpc-bm-overlay'));
+  // 라이브러리 구간 탭
+  const libBtn2 = [...document.querySelectorAll('#ytpc-panel button')]
+    .find(b => b.textContent.includes('목록'));
+  libBtn2.click();
+  await sleep(50);
+  const marksTab = document.querySelector('.ytpc-lib-tabs [data-tab="marks"]');
+  ok('라이브러리 구간 탭 존재', !!marksTab);
+  marksTab.click();
+  await sleep(50);
+  const bmRows = document.querySelectorAll('.ytpc-bmrow');
+  ok('구간 목록 렌더링', bmRows.length === 1 &&
+    bmRows[0].querySelector('.ytpc-bmrow-time').textContent.includes('1:05'),
+    bmRows.length + ' / ' + (bmRows[0] && bmRows[0].querySelector('.ytpc-bmrow-time').textContent));
+  ok('구간 메모 표시', bmRows[0].querySelector('.ytpc-bmrow-memo').textContent === '하이라이트');
+  // 점프 → 종료점 예약 (jsdom 내비게이션 불가라 stopAt으로 검증)
+  bmRows[0].querySelector('[data-act="jump"]').click();
+  await sleep(30);
+  ok('북마크 점프: 종료점 예약', BM.stopAt && BM.stopAt.end === 120 && BM.stopAt.videoId === 'TEST1234567',
+    JSON.stringify(BM.stopAt));
+  // 자동 일시정지: end를 넘기면 pause
+  let pausedCalled = false;
+  Object.defineProperty(video, 'paused', { value: false, configurable: true });
+  video.pause = () => { pausedCalled = true; };
+  video.currentTime = 130;
+  await sleep(450); // tick 300ms 주기
+  ok('북마크 구간 끝 자동 일시정지', pausedCalled && BM.stopAt === null,
+    'paused=' + pausedCalled + ' stopAt=' + JSON.stringify(BM.stopAt));
+  // 삭제
+  libBtn2.click();
+  await sleep(50);
+  document.querySelector('.ytpc-lib-tabs [data-tab="marks"]').click();
+  await sleep(50);
+  window.confirm = () => true;
+  document.querySelector('.ytpc-bmrow [data-act="del"]').click();
+  await sleep(50);
+  ok('북마크 삭제', (store.tp_bookmarks || []).length === 0 &&
+    document.querySelectorAll('.ytpc-bmrow').length === 0,
+    JSON.stringify(store.tp_bookmarks));
+  document.querySelector('#ytpc-lib-close').click();
+  await sleep(30);
 
   // --- 언어 전환 (팝업 언어 선택 → 패널 실시간 리빌드) ---
   const rowText = () => [...document.querySelectorAll('#ytpc-panel label.ytpc-row')]

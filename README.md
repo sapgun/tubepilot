@@ -35,8 +35,10 @@
 | 💬 | **Hide comments (focus mode)** | Hides the entire comment section so you can focus on the video |
 | 📚 | **Watch-later library** | Save videos with tags + keywords/notes. Auto-extracts `#hashtags` from descriptions, tag-chip filters + unified search across title/channel/tags/notes. Reopening a saved video shows a **recall banner** with its tags and notes, so you instantly remember why you saved it |
 | 💾 | **Backup & restore** | Export settings + library as a JSON file and restore them anytime |
-| 📷 | **Screenshot** | Save the current video frame as a PNG file (`Alt+S`), cropped to the player area |
-| ⌨️ | **Keyboard shortcuts** | `Alt+S` capture · `Alt+H` hide-comments toggle · `Alt+B` save dialog |
+| 📷 | **Screenshot** | Save the current video frame as PNG (`Alt+S`), cropped to the player area — download, copy to clipboard, or both (popup setting) |
+| ⌨️ | **Keyboard shortcuts** | `Alt+S` capture · `Alt+H` hide-comments toggle · `Alt+B` save dialog — remappable in the popup |
+| 🔖 | **Segment bookmarks** | Save custom time ranges with memos, jump to them from the Library "Segments" tab, auto-pause at segment end |
+| 💝 | **Support the dev** | Popup section with X, GitHub, business email, Ko-fi, and ETH/SOL donation (open-in-wallet + copy address) |
 
 Everything is toggled from the 🎬 panel at the bottom-right of YouTube pages.
 **Drag the panel header to place it anywhere** (position is saved, double-click to reset).

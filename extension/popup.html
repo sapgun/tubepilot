@@ -41,12 +41,65 @@
     </select>
   </div>
 
+  <div class="tp-lang">
+    <label for="shotmodesel">📷 <span data-i18n="set_shot_mode">스크린샷 저장 방식</span></label>
+    <select id="shotmodesel">
+      <option value="download" data-i18n="shot_mode_download">파일로 다운로드</option>
+      <option value="clipboard" data-i18n="shot_mode_clipboard">클립보드에 복사</option>
+      <option value="both" data-i18n="shot_mode_both">둘 다</option>
+    </select>
+  </div>
+
+  <div class="tp-hk">
+    <div class="tp-hk-title" data-i18n="hk_title">단축키 설정</div>
+    <div class="tp-hk-row">
+      <span data-i18n="hk_shot">스크린샷</span>
+      <button id="hkShot" class="tp-hk-btn">Alt+S</button>
+    </div>
+    <div class="tp-hk-row">
+      <span data-i18n="hk_comments">댓글 숨기기</span>
+      <button id="hkComments" class="tp-hk-btn">Alt+H</button>
+    </div>
+    <div class="tp-hk-row">
+      <span data-i18n="hk_save">다시보기 저장</span>
+      <button id="hkSave" class="tp-hk-btn">Alt+B</button>
+    </div>
+    <div class="tp-hk-row tp-hk-foot">
+      <button id="hkReset" class="tp-hk-reset" data-i18n="hk_reset">초기화</button>
+    </div>
+    <p class="tp-hk-err" id="hkErr"></p>
+  </div>
+
   <div class="tp-btns">
     <button id="openYt" class="tp-primary" data-i18n="p_open_youtube">유튜브 열기</button>
     <button id="openGh" class="tp-ghost">GitHub</button>
   </div>
 
   <p class="tp-hint" data-i18n="p_hint"></p>
+
+  <div class="tp-dev">
+    <div class="tp-dev-title" data-i18n="dev_title">개발자 · 후원</div>
+    <div class="tp-dev-links">
+      <button id="openX" class="tp-link" title="X">𝕏</button>
+      <button id="openMail" class="tp-link" title="Email">✉️</button>
+      <button id="openKofi" class="tp-link" title="Ko-fi">☕</button>
+    </div>
+    <p class="tp-dev-tip" data-i18n="dev_tip"></p>
+    <div class="tp-donate">
+      <div class="tp-coin"><span class="tp-coin-name">ETH</span><code id="ethAddr"></code></div>
+      <div class="tp-coin-btns">
+        <button id="copyEth" data-i18n="copy">복사</button>
+        <button id="walletEth" data-i18n="open_wallet">지갑으로 보내기</button>
+      </div>
+    </div>
+    <div class="tp-donate">
+      <div class="tp-coin"><span class="tp-coin-name">SOL</span><code id="solAddr"></code></div>
+      <div class="tp-coin-btns">
+        <button id="copySol" data-i18n="copy">복사</button>
+        <button id="walletSol" data-i18n="open_wallet">지갑으로 보내기</button>
+      </div>
+    </div>
+  </div>
 
   <script src="tp-i18n.js"></script>
   <script src="popup.js"></script>

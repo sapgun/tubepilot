@@ -37,10 +37,11 @@
   "name": "TubePilot",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "clipboardWrite"
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "version": "1.8.1"
+  "version": "1.9.0"
 }
