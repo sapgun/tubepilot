@@ -295,6 +295,12 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   await sleep(50);
   ok('Alt+S: TP_CAPTURE 메시지 전송', capturedMsg && capturedMsg.type === 'TP_CAPTURE',
     JSON.stringify(capturedMsg));
+  // 캡처 스케일: 실제 이미지 해상도 기준 (dpr 가정 금지)
+  const cs = window.__tpCaptureScale;
+  ok('캡처 스케일 계산', typeof cs === 'function' &&
+    cs(2560, 1280) === 2 && cs(1280, 1280) === 1 && cs(1920, 1280) === 1.5 &&
+    cs(0, 1280) === 1,
+    typeof cs === 'function' ? [cs(2560,1280), cs(1280,1280), cs(1920,1280)].join(',') : 'no fn');
   ok('스크린샷 실패 시 상태 문구',
     document.querySelector('#ytpc-panel .ytpc-status').textContent.includes('실패'),
     document.querySelector('#ytpc-panel .ytpc-status').textContent);

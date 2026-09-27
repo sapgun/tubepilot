@@ -613,7 +613,6 @@
     const v = getVideo();
     if (!v || !v.videoWidth) { setStatus(T('shot_no_video')); return; }
     const r = v.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
     const x = Math.max(0, r.left), y = Math.max(0, r.top);
     const w = Math.min(r.width, window.innerWidth - x);
     const h = Math.min(r.height, window.innerHeight - y);
@@ -623,16 +622,31 @@
       if ((chrome.runtime && chrome.runtime.lastError) || !res || !res.dataUrl) {
         setStatus(T('shot_fail')); return;
       }
-      cropAndDownload(res.dataUrl, x * dpr, y * dpr, w * dpr, h * dpr);
+      cropAndDownload(res.dataUrl, x, y, w, h); // CSS 픽셀 그대로 전달
     });
   }
-  function cropAndDownload(dataUrl, sx, sy, sw, sh) {
+  // 캡처 이미지의 실제 해상도를 재서 스케일 계산 (devicePixelRatio 가정 금지:
+  // 캡처 API의 실제 반환 해상도가 환경마다 다를 수 있음)
+  function tpCaptureScale(imgW, innerW) {
+    if (!imgW || !innerW) return 1;
+    return imgW / innerW;
+  }
+  if (typeof window !== 'undefined') window.__tpCaptureScale = tpCaptureScale;
+  function cropAndDownload(dataUrl, x, y, w, h) {
     const img = new Image();
     img.onload = () => {
       try {
+        const s = tpCaptureScale(img.naturalWidth, window.innerWidth);
+        let sx = Math.round(x * s), sy = Math.round(y * s);
+        let sw = Math.round(w * s), sh = Math.round(h * s);
+        // 이미지 범위로 클램프 (범위 밖 잘라내기는 검게 나올 수 있음)
+        sx = Math.max(0, Math.min(sx, img.naturalWidth - 1));
+        sy = Math.max(0, Math.min(sy, img.naturalHeight - 1));
+        sw = Math.max(1, Math.min(sw, img.naturalWidth - sx));
+        sh = Math.max(1, Math.min(sh, img.naturalHeight - sy));
         const c = document.createElement('canvas');
-        c.width = Math.max(1, Math.round(sw)); c.height = Math.max(1, Math.round(sh));
-        c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        c.width = sw; c.height = sh;
+        c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
         c.toBlob((blob) => {
           if (!blob) { setStatus(T('shot_fail')); return; }
           const a = document.createElement('a');

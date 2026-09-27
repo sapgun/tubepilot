@@ -22,7 +22,7 @@ window.chrome = {
       set: (obj) => { Object.assign(store, obj); return Promise.resolve(); },
     },
   },
-  runtime: { getManifest: () => ({ version: '1.8.0' }) },
+  runtime: { getManifest: () => ({ version: '1.8.1' }) },
   i18n: { getUILanguage: () => 'ko-KR' },
 };
 window.open = () => {};
@@ -40,7 +40,7 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   const tagline = () => document.querySelector('[data-i18n="p_tagline"]').textContent;
   const sel = document.getElementById('langsel');
 
-  ok('팝업: 버전 표시', document.getElementById('ver').textContent === 'v1.8.0',
+  ok('팝업: 버전 표시', document.getElementById('ver').textContent === 'v1.8.1',
     document.getElementById('ver').textContent);
   ok('팝업: 언어 옵션 5개', sel.options.length === 5,
     [...sel.options].map(o => o.value).join(','));
