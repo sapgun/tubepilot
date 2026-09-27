@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TubePilot
 // @namespace    https://github.com/sapgun/tubepilot
-// @version      1.1.1
+// @version      1.1.2
 // @description  PC 유튜브용 ReVanced 스타일 팩: 영상 광고 자동 스킵, SponsorBlock 구간 마킹+스킵, 영상 줌/패닝, 태그 기반 다시보기 라이브러리
 // @author       sapgun
 // @match        https://www.youtube.com/*
@@ -350,7 +350,7 @@
 
     const head = document.createElement('div');
     head.className = 'ytpc-head';
-    head.innerHTML = '<span>🎬 YT Revanced Pack</span><span>–</span>';
+    head.innerHTML = '<span>🎬 TubePilot</span><span>–</span>';
     head.addEventListener('click', () => panel.classList.toggle('ytpc-hidden'));
     panel.appendChild(head);
 
@@ -740,7 +740,7 @@
   function init() {
     if (inited) return;
     inited = true;
-    console.log('[TubePilot] loaded v' + '1.1.1');
+    console.log('[TubePilot] loaded v' + '1.1.2');
     try {
       buildPanel();
     } catch (e) {
