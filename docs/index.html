@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TubePilot — 유튜브 시청을 조종하는 콕핏</title>
+<meta name="description" content="TubePilot은 PC 유튜브를 위한 올인원 확장 프로그램입니다. 광고 자동 스킵, SponsorBlock, 클린 스크린샷, 다시보기 라이브러리까지.">
+<link rel="icon" href="icon.png">
+<style>
+  :root { --bg: #0f0f0f; --card: #1a1a1a; --line: #2a2a2a; --txt: #f1f1f1; --mut: #aaa; --acc: #4f7cff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", "Noto Sans KR", "Noto Sans", sans-serif;
+         background: var(--bg); color: var(--txt); line-height: 1.7; }
+  a { color: var(--acc); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  nav { display: flex; align-items: center; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  nav img { width: 32px; height: 32px; border-radius: 8px; }
+  nav .brand { font-weight: 800; font-size: 18px; }
+  nav .links { margin-left: auto; display: flex; gap: 18px; font-size: 14px; }
+  nav .links a { color: var(--mut); }
+  .hero { text-align: center; padding: 56px 0 40px; }
+  .hero img.banner { width: 100%; max-width: 720px; border-radius: 16px; border: 1px solid var(--line); }
+  .hero h1 { font-size: 34px; margin: 28px 0 10px; letter-spacing: -0.5px; }
+  .hero p.sub { color: var(--mut); font-size: 17px; max-width: 620px; margin: 0 auto; }
+  .badges { margin: 18px 0 26px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .badge { font-size: 12px; background: #222; border: 1px solid var(--line); padding: 4px 12px; border-radius: 999px; color: var(--mut); }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 12px 28px; border-radius: 10px; font-weight: 700; font-size: 15px; }
+  .btn.primary { background: var(--acc); color: #fff; }
+  .btn.primary:hover { text-decoration: none; filter: brightness(1.1); }
+  .btn.ghost { border: 1px solid var(--line); color: var(--txt); }
+  .btn.ghost:hover { text-decoration: none; background: #1e1e1e; }
+  section { padding: 48px 0; border-top: 1px solid var(--line); }
+  section h2 { font-size: 24px; margin-bottom: 8px; }
+  section p.lead { color: var(--mut); margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .card .ic { font-size: 26px; }
+  .card h3 { font-size: 16px; margin: 8px 0 6px; }
+  .card p { font-size: 13.5px; color: var(--mut); }
+  ol.steps { padding-left: 22px; display: grid; gap: 12px; font-size: 15px; }
+  ol.steps code { background: #222; padding: 2px 8px; border-radius: 6px; font-size: 13px; }
+  .note { margin-top: 16px; font-size: 13px; color: var(--mut); background: #161616;
+          border: 1px dashed var(--line); border-radius: 10px; padding: 12px 16px; }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+            padding: 14px 18px; margin-bottom: 10px; }
+  details summary { cursor: pointer; font-weight: 700; font-size: 15px; }
+  details p { font-size: 14px; color: var(--mut); margin-top: 8px; }
+  .donate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .addr { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  .addr code { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+               background: #222; padding: 8px 12px; border-radius: 8px; font-size: 12px; }
+  .addr button { background: var(--acc); color: #fff; border: 0; border-radius: 8px;
+                 padding: 8px 14px; font-size: 13px; cursor: pointer; font-weight: 700; }
+  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--mut);
+           font-size: 13px; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+  footer .sp { margin-left: auto; }
+  @media (max-width: 600px) { .hero h1 { font-size: 26px; } nav .links { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav>
+    <img src="icon.png" alt="TubePilot">
+    <span class="brand">TubePilot</span>
+    <div class="links">
+      <a href="#features">기능</a>
+      <a href="#install">설치</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/sapgun/tubepilot" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <img class="banner" src="hero.png" alt="TubePilot">
+    <h1>유튜브 시청을 조종하는 콕핏</h1>
+    <p class="sub">광고 자동 스킵, SponsorBlock 구간 스킵, 클린 스크린샷, 다시보기 라이브러리까지.
+      PC 유튜브에 필요한 기능을 하나의 패널에 담았습니다.</p>
+    <div class="badges">
+      <span class="badge">v1.9.2</span>
+      <span class="badge">Chrome 확장 프로그램 (MV3)</span>
+      <span class="badge">한국어 · English · 日本語 · Español · Português</span>
+      <span class="badge">무료</span>
+    </div>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/sapgun/tubepilot/releases" target="_blank" rel="noopener">GitHub에서 설치하기</a>
+      <a class="btn ghost" href="#features">기능 보기</a>
+    </div>
+  </div>
+
+  <section id="features">
+    <h2>기능</h2>
+    <p class="lead">영상 위에 떠 있는 패널 하나로 전부 조작합니다. 패널은 드래그로 옮기거나 플레이어 아래에 가로 바로 도킹할 수 있어요.</p>
+    <div class="grid">
+      <div class="card"><div class="ic">🚫</div><h3>광고 자동 스킵</h3><p>재생 전 광고를 감지하면 자동으로 음소거하고 스킵합니다.</p></div>
+      <div class="card"><div class="ic">⏭️</div><h3>SponsorBlock</h3><p>스폰서·인트로 등 구간을 진행 바에 색으로 표시하고 자동 스킵. 마커 클릭으로 이동도 됩니다.</p></div>
+      <div class="card"><div class="ic">🔍</div><h3>영상 줌</h3><p>최대 400%까지 확대하고 드래그로 화면을 움직일 수 있습니다.</p></div>
+      <div class="card"><div class="ic">📷</div><h3>클린 스크린샷</h3><p><code>Alt+S</code> 한 번이면 UI 없는 깨끗한 영상 프레임 캡처. 파일 저장·클립보드 복사 중 선택.</p></div>
+      <div class="card"><div class="ic">💬</div><h3>댓글 숨기기</h3><p><code>Alt+H</code>로 댓글란 전체를 숨기는 몰입 모드.</p></div>
+      <div class="card"><div class="ic">🔖</div><h3>다시보기 라이브러리</h3><p>설명란 해시태그 자동 추출, 태그·메모 저장, 구간 북마크(시작~끝 저장, 끝에서 자동 정지). 백업·복원 지원.</p></div>
+      <div class="card"><div class="ic">⌨️</div><h3>바꿀 수 있는 단축키</h3><p>스크린샷·댓글 숨기기·저장 단축키를 팝업에서 직접 변경.</p></div>
+      <div class="card"><div class="ic">🎨</div><h3>내 마음대로 패널</h3><p>투명도 조절, 드래그 이동, 우측 하단 / 플레이어 위 / 플레이어 아래 가로 바 모드.</p></div>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>설치</h2>
+    <p class="lead">Chrome 웹 스토어 심사 준비 중입니다. 지금은 GitHub 릴리즈에서 직접 설치하세요. (1분 컷)</p>
+    <ol class="steps">
+      <li><a href="https://github.com/sapgun/tubepilot/releases" target="_blank" rel="noopener">릴리즈 페이지</a>에서 최신 <code>tubepilot-v*-extension.zip</code>을 내려받아 압축을 풉니다.</li>
+      <li>Chrome 주소창에 <code>chrome://extensions</code>를 입력하고 우측 상단 <strong>개발자 모드</strong>를 켭니다.</li>
+      <li><strong>압축해제된 확장 프로그램을 로드</strong>를 눌러 압축 푼 폴더 안의 <code>extension</code> 폴더를 선택합니다.</li>
+      <li>유튜브 영상 페이지를 열면 우측 하단에 TubePilot 패널이 나타납니다. 🎉</li>
+    </ol>
+    <div class="note">스토어에 정식 등록되면 이 페이지 상단의 설치 버튼이 스토어로 바로 연결됩니다. 업데이트는 릴리즈 페이지에서 같은 방식으로 덮어씌우면 됩니다.</div>
+  </section>
+
+  <section id="faq">
+    <h2>자주 묻는 질문</h2>
+    <details>
+      <summary>무료인가요?</summary>
+      <p>네, 완전 무료입니다. 자발적 후원(ETH/SOL)은 환영하지만 기능 제한은 없습니다.</p>
+    </details>
+    <details>
+      <summary>제 시청 기록 같은 개인정보를 수집하나요?</summary>
+      <p>아니요. 스폰서 구간 조회를 위해 <strong>시청 중인 영상의 ID</strong>만 SponsorBlock API(<code>sponsor.ajay.app</code>)로 전송하고, 설정·라이브러리는 브라우저 로컬(<code>chrome.storage.local</code>)에만 저장됩니다. 자세한 내용은 <a href="privacy.html">개인정보처리방침</a>을 참고하세요.</p>
+    </details>
+    <details>
+      <summary>어떤 언어를 지원하나요?</summary>
+      <p>한국어, English, 日本語, Español, Português 5개 언어를 지원합니다. 브라우저 언어를 자동 감지하고, 팝업에서 직접 바꿀 수도 있습니다.</p>
+    </details>
+    <details>
+      <summary>버그를 찾았거나 기능 제안이 있어요.</summary>
+      <p><a href="https://github.com/sapgun/tubepilot/issues" target="_blank" rel="noopener">GitHub Issues</a>에 남겨주세요. 버그 리포트 템플릿이 준비되어 있습니다.</p>
+    </details>
+  </section>
+
+  <section id="donate">
+    <h2>후원</h2>
+    <p class="lead">TubePilot은 무료로 유지됩니다. 개발이 도움이 됐다면 커피 한 잔 후원해 주세요. ☕</p>
+    <div class="donate-grid">
+      <div class="card">
+        <h3>ETH (이더리움)</h3>
+        <div class="addr"><code id="eth-addr">0xe8F1B706223652E672ffF62cE1FEf9c7C98eFc68</code><button data-copy="eth-addr">복사</button></div>
+      </div>
+      <div class="card">
+        <h3>SOL (솔라나)</h3>
+        <div class="addr"><code id="sol-addr">BzsE914REG8op1uonEv7rz2NxiS9k3Jcrivz84NdNd5H</code><button data-copy="sol-addr">복사</button></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 sapgun · TubePilot</span>
+    <a href="https://github.com/sapgun/tubepilot" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://x.com/0xSAPGUN" target="_blank" rel="noopener">X @0xSAPGUN</a>
+    <a href="privacy.html">개인정보처리방침</a>
+    <span class="sp">v1.9.2</span>
+  </footer>
+
+</div>
+<script>
+  document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var t = document.getElementById(btn.getAttribute('data-copy')).textContent;
+      var done = function () { btn.textContent = '완료!'; setTimeout(function(){ btn.textContent = '복사'; }, 1500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).then(done, done);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = t; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        ta.remove(); done();
+      }
+    });
+  });
+</script>
+</body>
+</html>
