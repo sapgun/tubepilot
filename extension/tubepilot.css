@@ -2,7 +2,7 @@
   background: rgba(15,15,15,.95); color: #fff; border: 1px solid #3d3d3d;
   border-radius: 12px; font: 12px/1.6 -apple-system, "Segoe UI", sans-serif;
   width: 212px; box-shadow: 0 4px 24px rgba(0,0,0,.55); user-select: none; }
-#ytpc-panel .ytpc-head { padding: 8px 10px; font-weight: 700; cursor: pointer;
+#ytpc-panel .ytpc-head { padding: 8px 10px; font-weight: 700; cursor: move;
   display: flex; justify-content: space-between; align-items: center; }
 #ytpc-panel .ytpc-body { padding: 2px 10px 10px; border-top: 1px solid #2a2a2a; }
 #ytpc-panel.ytpc-hidden .ytpc-body { display: none; }
@@ -17,7 +17,9 @@
 #ytpc-panel .ytpc-zoomlbl { min-width: 44px; text-align: center; color: #aaa; font-size: 11px; }
 #ytpc-panel .ytpc-status { margin-top: 8px; color: #9a9a9a; font-size: 11px; min-height: 15px; }
 #ytpc-panel .ytpc-hint { color: #6f6f6f; font-size: 10px; margin-top: 4px; }
-.ytpc-marker { position: absolute; top: 0; height: 100%; pointer-events: none;
+#ytpc-panel .ytpc-posrow select { margin-left: auto; background: #272727; color: #fff;
+  border: 1px solid #4a4a4a; border-radius: 6px; font-size: 11px; padding: 2px 4px; }
+.ytpc-marker { position: absolute; top: 0; height: 100%; pointer-events: auto; cursor: pointer;
   z-index: 40; opacity: .9; border-radius: 2px; }
 /* 다시보기 라이브러리 */
 #ytpc-lib-overlay { position: fixed; inset: 0; z-index: 2147483647; background: rgba(0,0,0,.72);

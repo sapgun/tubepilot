@@ -1,0 +1,6 @@
+{
+  "name": "tubepilot-test",
+  "private": true,
+  "scripts": { "test": "node test.js" },
+  "dependencies": { "jsdom": "^24.0.0" }
+}

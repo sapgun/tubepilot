@@ -1,1 +1,41 @@
-{"action":{"default_icon":{"128":"icons/icon128.png","16":"icons/icon16.png","48":"icons/icon48.png"},"default_popup":"popup.html","default_title":"TubePilot"},"content_scripts":[{"css":["tubepilot.css"],"js":["content.js"],"matches":["https://www.youtube.com/*","https://m.youtube.com/*"],"run_at":"document_start"}],"description":"PC 유튜브용 ReVanced 스타일 파워팩: 영상 광고 자동 스킵, SponsorBlock 구간 마킹+스킵, 영상 줌/패닝, 태그 기반 다시보기 라이브러리","host_permissions":["https://sponsor.ajay.app/*"],"icons":{"128":"icons/icon128.png","16":"icons/icon16.png","48":"icons/icon48.png"},"manifest_version":3,"name":"TubePilot","permissions":["storage"],"version":"1.2.0"}
+{
+  "action": {
+    "default_icon": {
+      "128": "icons/icon128.png",
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    },
+    "default_popup": "popup.html",
+    "default_title": "TubePilot"
+  },
+  "content_scripts": [
+    {
+      "css": [
+        "tubepilot.css"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://m.youtube.com/*"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "description": "PC 유튜브용 ReVanced 스타일 파워팩: 영상 광고 자동 스킵, SponsorBlock 구간 마킹+스킵, 영상 줌/패닝, 태그 기반 다시보기 라이브러리",
+  "host_permissions": [
+    "https://sponsor.ajay.app/*"
+  ],
+  "icons": {
+    "128": "icons/icon128.png",
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png"
+  },
+  "manifest_version": 3,
+  "name": "TubePilot",
+  "permissions": [
+    "storage"
+  ],
+  "version": "1.3.0"
+}

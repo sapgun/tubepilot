@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.2.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.3.0-blue" alt="version">
   <img src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Brave-orange" alt="platform">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="prs welcome">
@@ -26,12 +26,15 @@
 | 📚 | **다시보기 라이브러리** | 태그 + 키워드/메모와 함께 영상 저장. 설명란의 `#해시태그` 자동 추출, 태그 칩 필터 + 제목·채널·태그·메모 통합 검색. 저장된 영상을 다시 열면 **리콜 배너**가 태그와 메모를 보여줘서 "왜 저장했더라"를 바로 유추 가능 |
 
 모든 기능은 유튜브 페이지 우측 하단의 🎬 패널에서 켜고 끌 수 있습니다.
+**패널은 헤더 드래그로 원하는 위치에 둘 수 있고** (위치는 저장됨, 더블클릭으로 초기화),
+패널 설정에서 **플레이어 하단 고정**으로 바꾸면 플레이어 크기가 바뀌어도 따라다닙니다.
+진행 바의 색깔 마커를 **클릭하면 해당 구간 시작으로 바로 이동**합니다.
 
 ## 📦 설치
 
 ### A. 브라우저 확장 (권장)
 
-1. 이 레포를 클론하거나 [최신 릴리즈](https://github.com/sapgun/tubepilot/releases)에서 `tubepilot-1.2.0.zip` 다운로드 후 압축 해제
+1. 이 레포를 클론하거나 [최신 릴리즈](https://github.com/sapgun/tubepilot/releases)에서 `tubepilot-1.3.0.zip` 다운로드 후 압축 해제
 2. `chrome://extensions` 접속 → 우측 상단 **개발자 모드** 켜기
 3. **압축해제된 확장 프로그램을 로드합니다** 클릭 → `extension/` 폴더 선택
 4. youtube.com 접속 → 우측 하단에 🎬 패널이 뜨면 완료
@@ -81,6 +84,7 @@ SponsorBlock 데이터는 커뮤니티 기여 기반이라 구간 정보가 없�
 ## 🤝 기여
 
 버그 제보와 기능 제안은 [이슈](https://github.com/sapgun/tubepilot/issues)로, 코드 기여는 PR로 환영합니다.
+PR 전에는 `cd extension/test && npm install && npm test`로 테스트를 돌려주세요.
 
 ## 📄 라이선스
 

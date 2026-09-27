@@ -11,6 +11,8 @@
     adMute: true,   // 광고 중 음소거
     sbSkip: true,   // SponsorBlock 구간 자동 스킵
     sbMark: true,   // SponsorBlock 구간 마킹 표시
+    panelMode: 'corner',  // corner(우측 하단) | player(플레이어 하단)
+    panelPos: null,       // {left, top} 수동 드래그 위치 (있으면 모드보다 우선)
     cats: {
       sponsor: true,
       intro: true,
@@ -113,9 +115,18 @@
           try {
             const data = JSON.parse(res.responseText);
             segments = [];
-            data.forEach(e => (e.segments || []).forEach(s =>
-              segments.push({ start: s[0], end: s[1], cat: e.category })));
+            data.forEach(e => {
+              // 실제 API는 segment(단수, [start, end])로 옴. 혹시 모를 복수형도 허용.
+              const list = Array.isArray(e.segment) ? [e.segment] : (e.segments || []);
+              list.forEach(s => {
+                if (Array.isArray(s) && s.length >= 2 && isFinite(s[0]) && isFinite(s[1]) && s[1] > s[0]) {
+                  segments.push({ start: s[0], end: s[1], cat: e.category });
+                }
+              });
+            });
             segments.sort((a, b) => a.start - b.start);
+            console.log('[TubePilot] segments loaded:', segments.length,
+              segments.map(s => s.cat + ':' + Math.round(s.start) + '-' + Math.round(s.end)).join(', '));
             if (cfg.sbMark) drawMarkers();
             setStatus(segments.length ? '스킵 구간 ' + segments.length + '개 로드됨' : '스킵 구간 없음');
           } catch (e) { setStatus('구간 파싱 실패'); }
@@ -131,8 +142,8 @@
   }
 
   function progressContainer() {
-    return document.querySelector('#movie_player .ytp-progress-bar-container') ||
-           document.querySelector('#movie_player .ytp-progress-bar');
+    return document.querySelector('#movie_player .ytp-progress-bar') ||
+           document.querySelector('#movie_player .ytp-progress-bar-container');
   }
   function clearMarkers() {
     document.querySelectorAll('.ytpc-marker').forEach(el => el.remove());
@@ -141,6 +152,7 @@
     clearMarkers();
     const v = getVideo(), bar = progressContainer();
     if (!v || !bar || !v.duration || !isFinite(v.duration)) return;
+    bar.style.position = 'relative'; // 마커 absolute 기준점 보장
     const dur = v.duration;
     segments.forEach(s => {
       const meta = CAT_META[s.cat] || { color: '#ffffff' };
@@ -149,7 +161,12 @@
       el.style.left = (s.start / dur * 100) + '%';
       el.style.width = Math.max(0.4, (s.end - s.start) / dur * 100) + '%';
       el.style.background = meta.color;
-      el.title = (meta.label || s.cat) + ' ' + fmtTime(s.start) + ' → ' + fmtTime(s.end);
+      el.title = (meta.label || s.cat) + ' ' + fmtTime(s.start) + ' → ' + fmtTime(s.end) + ' (클릭하면 이동)';
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const vv = getVideo();
+        if (vv) { try { vv.currentTime = s.start + 0.1; } catch (err) {} }
+      });
       bar.appendChild(el);
     });
   }
@@ -254,6 +271,84 @@
     }
   }, true);
 
+  /* ================= 패널 위치/드래그 ================= */
+  function playerRect() {
+    const pl = document.getElementById('movie_player');
+    if (!pl) return null;
+    const r = pl.getBoundingClientRect();
+    return (r && r.width > 50) ? r : null;
+  }
+  function positionPanel() {
+    const panel = document.getElementById('ytpc-panel');
+    if (!panel) return;
+    if (cfg.panelPos) {
+      // 수동 드래그 위치가 있으면 최우선
+      panel.style.left = cfg.panelPos.left;
+      panel.style.top = cfg.panelPos.top;
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+      return;
+    }
+    if (cfg.panelMode === 'player') {
+      const pr = playerRect();
+      if (pr) {
+        const h = panel.offsetHeight || 0;
+        panel.style.left = (pr.left + 12) + 'px';
+        panel.style.top = Math.max(0, pr.bottom - h - 64) + 'px'; // 컨트롤 바 위
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        return;
+      }
+    }
+    // 기본: 우측 하단
+    panel.style.left = 'auto';
+    panel.style.top = 'auto';
+    panel.style.right = '16px';
+    panel.style.bottom = '88px';
+  }
+  function makeDraggable(panel, head) {
+    let drag = null;
+    head.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      const r = panel.getBoundingClientRect();
+      panel.style.left = r.left + 'px';
+      panel.style.top = r.top + 'px';
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+      drag = { x0: e.clientX, y0: e.clientY, l: r.left, t: r.top, moved: false };
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+      if (!drag.moved && Math.hypot(dx, dy) < 4) return; // 클릭과 구분
+      drag.moved = true;
+      const w = panel.offsetWidth || 212, h = panel.offsetHeight || 100;
+      const l = Math.max(-w + 60, Math.min(window.innerWidth - 60, drag.l + dx));
+      const t = Math.max(0, Math.min(window.innerHeight - 40, drag.t + dy));
+      panel.style.left = l + 'px';
+      panel.style.top = t + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      if (!drag) return;
+      if (drag.moved) {
+        cfg.panelPos = { left: panel.style.left, top: panel.style.top };
+        saveCfg();
+        setStatus('패널 위치 저장됨');
+      } else {
+        panel.classList.toggle('ytpc-hidden'); // 클릭 = 접기/펼치기
+      }
+      drag = null;
+    });
+    head.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      cfg.panelPos = null;
+      saveCfg();
+      positionPanel();
+      setStatus('패널 위치 초기화됨');
+    });
+  }
+
   /* ================= 컨트롤 패널 ================= */
   function buildPanel() {
     if (document.getElementById('ytpc-panel')) return;
@@ -263,7 +358,6 @@
     const head = document.createElement('div');
     head.className = 'ytpc-head';
     head.innerHTML = '<span>🎬 TubePilot</span><span>–</span>';
-    head.addEventListener('click', () => panel.classList.toggle('ytpc-hidden'));
     panel.appendChild(head);
 
     const body = document.createElement('div');
@@ -321,6 +415,27 @@
     zr.appendChild(bIn); zr.appendChild(bOut); zr.appendChild(bRs); zr.appendChild(zoomLbl);
     body.appendChild(zr);
 
+    const posRow = document.createElement('label');
+    posRow.className = 'ytpc-row ytpc-posrow';
+    posRow.appendChild(document.createTextNode('\uD83D\uDCCC 패널 위치'));
+    const posSel = document.createElement('select');
+    posSel.id = 'ytpc-posmode';
+    [['corner', '우측 하단'], ['player', '플레이어 하단']].forEach(([val, label]) => {
+      const o = document.createElement('option');
+      o.value = val; o.textContent = label;
+      posSel.appendChild(o);
+    });
+    posSel.value = cfg.panelMode || 'corner';
+    posSel.addEventListener('change', () => {
+      cfg.panelMode = posSel.value;
+      cfg.panelPos = null; // 수동 위치 초기화
+      saveCfg();
+      positionPanel();
+      setStatus(cfg.panelMode === 'player' ? '플레이어 하단에 고정' : '우측 하단에 고정');
+    });
+    posRow.appendChild(posSel);
+    body.appendChild(posRow);
+
     const libRow = document.createElement('div');
     libRow.className = 'ytpc-zoomrow';
     const bLib = document.createElement('button'); bLib.textContent = '목록';
@@ -343,6 +458,8 @@
 
     panel.appendChild(body);
     (document.body || document.documentElement).appendChild(panel);
+    makeDraggable(panel, head);
+    positionPanel();
   }
 
   /* ================= 다시보기 라이브러리 ================= */
@@ -640,6 +757,8 @@
     }
     handleAds();
     handleSponsorSkip();
+    // 플레이어 하단 모드: 플레이어 크기/위치 변화를 따라감 (수동 드래그 위치가 없을 때만)
+    if (cfg.panelMode === 'player' && !cfg.panelPos) positionPanel();
   }
 
   /* ================= 초기화 ================= */
@@ -656,6 +775,13 @@
     setInterval(() => {
       try { tick(); } catch (e) { console.error('[TubePilot] tick error:', e); }
     }, 300);
+    window.addEventListener('resize', () => {
+      if (cfg.panelMode === 'player' && !cfg.panelPos) positionPanel();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const p = document.getElementById('ytpc-panel');
+      if (p) p.style.display = document.fullscreenElement ? 'none' : '';
+    });
     try { tick(); } catch (e) { console.error('[TubePilot] tick error:', e); }
   }
   // MV3 부트: 저장소에서 설정/라이브러리 로드 후 시작
