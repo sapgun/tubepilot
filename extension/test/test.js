@@ -23,12 +23,23 @@ const document = window.document;
 
 // ---- chrome.storage stub (메모리) ----
 const store = {};
+const changeListeners = [];
 window.chrome = {
-  storage: { local: {
-    get: (keys) => Promise.resolve(
-      Object.fromEntries((Array.isArray(keys) ? keys : [keys]).map(k => [k, store[k]]))),
-    set: (obj, cb) => { Object.assign(store, obj); if (typeof cb === 'function') cb(); return Promise.resolve(); },
-  } },
+  storage: {
+    local: {
+      get: (keys) => Promise.resolve(
+        Object.fromEntries((Array.isArray(keys) ? keys : [keys]).map(k => [k, store[k]]))),
+      set: (obj, cb) => {
+        const changes = {};
+        for (const k of Object.keys(obj)) changes[k] = { oldValue: store[k], newValue: obj[k] };
+        Object.assign(store, obj);
+        if (typeof cb === 'function') cb();
+        changeListeners.forEach(fn => { try { fn(changes, 'local'); } catch (e) {} });
+        return Promise.resolve();
+      },
+    },
+    onChanged: { addListener: (fn) => changeListeners.push(fn) },
+  },
   runtime: { getManifest: () => ({ version: '1.3.0' }) },
 };
 
@@ -57,6 +68,10 @@ Object.defineProperty(video, 'duration', { value: 100, configurable: true });
 video.currentTime = 50; // 어떤 스폰서 구간 밖에서 시작 (초기 자동스킵이 상태 문구를 덮지 않게)
 
 // ---- content.js 실행 (jsdom 창 컨텍스트 — 실제 컨텐트 스크립트와 동일 환경) ----
+// 브라우저 언어를 한국어로 고정 (기본 로케일 ko 테스트)
+Object.defineProperty(window.navigator, 'language', { value: 'ko-KR', configurable: true });
+const i18nCode = fs.readFileSync(path.join(__dirname, '..', 'tp-i18n.js'), 'utf8');
+window.eval(i18nCode);
 const code = fs.readFileSync(path.join(__dirname, '..', 'content.js'), 'utf8');
 window.eval(code);
 
@@ -255,6 +270,68 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   cmtBox.dispatchEvent(new window.Event('change', { bubbles: true }));
   await sleep(50);
   ok('댓글 숨기기 off: 클래스 제거', !document.documentElement.classList.contains('ytpc-nocomments'));
+
+  // --- 스크린샷 버튼 + 단축키 ---
+  const shotBtn = [...panel.querySelectorAll('button')].find(b => b.textContent.includes('📷'));
+  ok('스크린샷 버튼 존재', !!shotBtn, shotBtn && shotBtn.textContent);
+  ok('단축키 힌트 표시', [...document.querySelectorAll('#ytpc-panel .ytpc-hint')]
+    .some(el => el.textContent.includes('Alt+S')));
+  // videoWidth 0(jsdom 기본) → 캡처 불가 안내
+  shotBtn.click();
+  await sleep(50);
+  ok('스크린샷: 영상 없으면 안내 문구',
+    document.querySelector('#ytpc-panel .ytpc-status').textContent.includes('캡처할 영상이 없어요'),
+    document.querySelector('#ytpc-panel .ytpc-status').textContent);
+  // Alt+S → background에 캡처 요청 (영상 크기 모킹)
+  Object.defineProperty(video, 'videoWidth', { value: 1280, configurable: true });
+  video.getBoundingClientRect = () => ({
+    left: 100, top: 80, right: 900, bottom: 500, width: 800, height: 420, x: 100, y: 80,
+    toJSON() { return {}; },
+  });
+  let capturedMsg = null;
+  window.chrome.runtime.sendMessage = (msg, cb) => { capturedMsg = msg; cb({}); };
+  document.dispatchEvent(new window.KeyboardEvent('keydown',
+    { key: 's', altKey: true, bubbles: true }));
+  await sleep(50);
+  ok('Alt+S: TP_CAPTURE 메시지 전송', capturedMsg && capturedMsg.type === 'TP_CAPTURE',
+    JSON.stringify(capturedMsg));
+  ok('스크린샷 실패 시 상태 문구',
+    document.querySelector('#ytpc-panel .ytpc-status').textContent.includes('실패'),
+    document.querySelector('#ytpc-panel .ytpc-status').textContent);
+  // Alt+H → 댓글 숨기기 토글
+  const cmtBox2 = [...document.querySelectorAll('#ytpc-panel label.ytpc-row')]
+    .find(l => l.textContent.includes('댓글 숨기기')).querySelector('input');
+  document.dispatchEvent(new window.KeyboardEvent('keydown',
+    { key: 'h', altKey: true, bubbles: true }));
+  await sleep(50);
+  ok('Alt+H: 댓글 숨기기 토글 on',
+    document.documentElement.classList.contains('ytpc-nocomments') && cmtBox2.checked === true);
+  document.dispatchEvent(new window.KeyboardEvent('keydown',
+    { key: 'h', altKey: true, bubbles: true }));
+  await sleep(50);
+  ok('Alt+H: 댓글 숨기기 토글 off',
+    !document.documentElement.classList.contains('ytpc-nocomments') && cmtBox2.checked === false);
+  // Alt+B → 저장 다이얼로그
+  document.dispatchEvent(new window.KeyboardEvent('keydown',
+    { key: 'b', altKey: true, bubbles: true }));
+  await sleep(50);
+  ok('Alt+B: 저장 다이얼로그 열림', !!document.querySelector('#ytpc-save-overlay'));
+
+  // --- 언어 전환 (팝업 언어 선택 → 패널 실시간 리빌드) ---
+  const rowText = () => [...document.querySelectorAll('#ytpc-panel label.ytpc-row')]
+    .map(l => l.textContent).join('|');
+  ok('기본 언어 ko (브라우저 ko-KR)', rowText().includes('영상 광고 자동 스킵'), rowText().slice(0, 60));
+  await window.chrome.storage.local.set({ tp_lang: 'en' });
+  await sleep(100);
+  ok('언어 전환 en: 패널 영어 리빌드', rowText().includes('Auto-skip video ads'), rowText().slice(0, 60));
+  ok('언어 전환 en: 카테고리 영문',
+    [...document.querySelectorAll('#ytpc-panel .ytpc-cats label')].some(l => l.textContent.includes('Sponsor')));
+  await window.chrome.storage.local.set({ tp_lang: 'ja' });
+  await sleep(100);
+  ok('언어 전환 ja: 패널 일본어 리빌드', rowText().includes('動画広告を自動スキップ'));
+  await window.chrome.storage.local.set({ tp_lang: 'ko' });
+  await sleep(100);
+  ok('언어 복귀 ko', rowText().includes('영상 광고 자동 스킵'));
 
   // --- 결과 ---
   let fail = 0;

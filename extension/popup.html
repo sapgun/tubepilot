@@ -1,32 +1,54 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
 <meta charset="utf-8">
-<style>
-  body { width: 240px; margin: 0; padding: 14px 16px; background: #141414; color: #fff;
-    font: 13px/1.6 -apple-system, "Segoe UI", sans-serif; }
-  h1 { font-size: 15px; margin: 0 0 2px; }
-  .ver { color: #888; font-size: 11px; margin-bottom: 10px; }
-  .switch-row { display: flex; align-items: center; justify-content: space-between;
-    background: #1d1d1d; border: 1px solid #2e2e2e; border-radius: 10px;
-    padding: 8px 12px; margin-bottom: 10px; cursor: pointer; }
-  .switch-row input { width: 18px; height: 18px; accent-color: #3b82f6; cursor: pointer; }
-  .btns { display: flex; gap: 8px; }
-  .btns button { flex: 1; background: #272727; color: #fff; border: 1px solid #4a4a4a;
-    border-radius: 8px; padding: 7px 0; cursor: pointer; font-size: 12px; }
-  .btns button:hover { background: #3d3d3d; }
-  .hint { color: #777; font-size: 11px; margin: 10px 0 0; }
-</style>
+<link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>🎬 TubePilot</h1>
-  <div class="ver" id="ver"></div>
-  <label class="switch-row"><span>전체 사용</span><input type="checkbox" id="enabled"></label>
-  <div class="btns">
-    <button id="openYt">유튜브 열기</button>
-    <button id="openGh">GitHub</button>
+  <header class="tp-head">
+    <img class="tp-logo" src="icons/icon48.png" alt="TubePilot">
+    <div class="tp-title">
+      <h1>TubePilot</h1>
+      <p data-i18n="p_tagline">PC 유튜브 파워팩</p>
+    </div>
+    <span class="tp-ver" id="ver"></span>
+  </header>
+
+  <label class="tp-master">
+    <span data-i18n="p_enable_all">전체 사용</span>
+    <span class="tp-switch">
+      <input type="checkbox" id="enabled">
+      <span class="tp-track"><span class="tp-knob"></span></span>
+    </span>
+  </label>
+
+  <div class="tp-feats">
+    <div class="tp-feat"><span class="tp-ico">⏭</span><span data-i18n="p_feat_adskip">광고 자동 스킵</span></div>
+    <div class="tp-feat"><span class="tp-ico">🟩</span><span data-i18n="p_feat_sb">SponsorBlock 마킹 · 스킵</span></div>
+    <div class="tp-feat"><span class="tp-ico">🔍</span><span data-i18n="p_feat_zoom">영상 줌 · 패닝</span></div>
+    <div class="tp-feat"><span class="tp-ico">💬</span><span data-i18n="p_feat_comments">댓글 숨기기</span></div>
+    <div class="tp-feat"><span class="tp-ico">📚</span><span data-i18n="p_feat_library">다시보기 라이브러리</span></div>
   </div>
-  <p class="hint">세부 설정(광고 스킵 · SponsorBlock · 줌 · 다시보기)은 유튜브 페이지 우측 하단의 🎬 패널에서 변경할 수 있어요. 전체 사용을 끄면 새로고침 후 적용됩니다.</p>
+
+  <div class="tp-lang">
+    <label for="langsel">🌐 <span data-i18n="p_language">언어</span></label>
+    <select id="langsel">
+      <option value="ko">한국어</option>
+      <option value="en">English</option>
+      <option value="ja">日本語</option>
+      <option value="es">Español</option>
+      <option value="pt">Português</option>
+    </select>
+  </div>
+
+  <div class="tp-btns">
+    <button id="openYt" class="tp-primary" data-i18n="p_open_youtube">유튜브 열기</button>
+    <button id="openGh" class="tp-ghost">GitHub</button>
+  </div>
+
+  <p class="tp-hint" data-i18n="p_hint"></p>
+
+  <script src="tp-i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
   "name": "tubepilot-test",
   "private": true,
-  "scripts": { "test": "node test.js" },
+  "scripts": { "test": "node test.js && node popup-test.js && node i18n-check.js" },
   "dependencies": { "jsdom": "^24.0.0" }
 }

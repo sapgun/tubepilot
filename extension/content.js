@@ -30,12 +30,12 @@
   function saveCfg() { chrome.storage.local.set({ tp_cfg: cfg }).catch(() => {}); }
 
   const CAT_META = {
-    sponsor:        { label: '스폰서',      color: '#00d400' },
-    intro:          { label: '인트로',      color: '#00ffff' },
-    outro:          { label: '아웃트로',    color: '#0202ed' },
-    selfpromo:      { label: '자기홍보',    color: '#ffff00' },
-    interaction:    { label: '구독 알림',   color: '#cc00ff' },
-    music_offtopic: { label: '음악(비주제)', color: '#ff9900' },
+    sponsor:        { labelKey: 'cat_sponsor',      color: '#00d400' },
+    intro:          { labelKey: 'cat_intro',      color: '#00ffff' },
+    outro:          { labelKey: 'cat_outro',    color: '#0202ed' },
+    selfpromo:      { labelKey: 'cat_selfpromo',    color: '#ffff00' },
+    interaction:    { labelKey: 'cat_interaction',   color: '#cc00ff' },
+    music_offtopic: { labelKey: 'cat_music_offtopic', color: '#ff9900' },
   };
 
 
@@ -94,7 +94,7 @@
     resetZoom(true);
     hideRecall();
     if (vid) {
-      setStatus('구간 정보 불러오는 중…');
+      setStatus(T('st_loading'));
       loadSegments(vid);
       checkRecall(vid);
     } else {
@@ -130,16 +130,16 @@
             console.log('[TubePilot] segments loaded:', segments.length,
               segments.map(s => s.cat + ':' + Math.round(s.start) + '-' + Math.round(s.end)).join(', '));
             if (cfg.sbMark) drawMarkers();
-            setStatus(segments.length ? '스킵 구간 ' + segments.length + '개 로드됨' : '스킵 구간 없음');
-          } catch (e) { setStatus('구간 파싱 실패'); }
+            setStatus(segments.length ? T('st_loaded', { n: segments.length }) : T('st_empty'));
+          } catch (e) { setStatus(T('st_parse_fail')); }
         } else if (res.status === 404) {
-          segments = []; clearMarkers(); setStatus('스킵 구간 없음');
+          segments = []; clearMarkers(); setStatus(T('st_empty'));
         } else {
-          setStatus('구간 조회 실패 (' + res.status + ')');
+          setStatus(T('st_fetch_fail', { status: res.status }));
         }
       },
-      onerror: function () { if (vid === currentVideoId) setStatus('구간 서버 연결 실패'); },
-      ontimeout: function () { if (vid === currentVideoId) setStatus('구간 조회 시간 초과'); },
+      onerror: function () { if (vid === currentVideoId) setStatus(T('st_conn_fail')); },
+      ontimeout: function () { if (vid === currentVideoId) setStatus(T('st_timeout')); },
     });
   }
 
@@ -157,13 +157,13 @@
     bar.style.position = 'relative'; // 마커 absolute 기준점 보장
     const dur = v.duration;
     segments.forEach(s => {
-      const meta = CAT_META[s.cat] || { color: '#ffffff' };
+      const meta = CAT_META[s.cat] || { labelKey: null, color: '#ffffff' };
       const el = document.createElement('div');
       el.className = 'ytpc-marker';
       el.style.left = (s.start / dur * 100) + '%';
       el.style.width = Math.max(0.4, (s.end - s.start) / dur * 100) + '%';
       el.style.background = meta.color;
-      el.title = (meta.label || s.cat) + ' ' + fmtTime(s.start) + ' → ' + fmtTime(s.end) + ' (클릭하면 이동)';
+      el.title = T('marker_title', { label: T(meta.labelKey || s.cat), start: fmtTime(s.start), end: fmtTime(s.end) });
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         const vv = getVideo();
@@ -187,8 +187,9 @@
       if (t >= s.start && t < s.end - 0.05) {
         v.currentTime = Math.min(s.end + 0.05, v.duration - 0.05);
         const meta = CAT_META[s.cat] || {};
-        setStatus('스킵: ' + (meta.label || s.cat));
-        showSkipToast(meta.label || s.cat);
+        const catLabel = T(meta.labelKey || s.cat);
+        setStatus(T('st_skipped', { label: catLabel }));
+        showSkipToast(catLabel);
         break;
       }
     }
@@ -205,7 +206,7 @@
           if (v.playbackRate !== adState.rate) v.playbackRate = adState.rate;
         } catch (e) {}
         adState = null;
-        setStatus(segments.length ? '스킵 구간 ' + segments.length + '개 로드됨' : '');
+        setStatus(segments.length ? T('st_loaded', { n: segments.length }) : '');
       }
       return;
     }
@@ -213,7 +214,7 @@
     if (!cfg.adSkip && !cfg.adMute) return;
 
     if (cfg.adMute) { try { v.muted = true; } catch (e) {} }
-    setStatus('광고 스킵 중…');
+    setStatus(T('st_ad_skipping'));
 
     if (cfg.adSkip) {
       // 1) 스킵 버튼이 보이면 클릭
@@ -285,7 +286,7 @@
       t.className = 'ytpc-skiptoast';
       pl.appendChild(t);
     }
-    t.textContent = '\u23ED 스킵: ' + label;
+    t.textContent = T('toast_skipped', { label });
     t.classList.add('ytpc-show');
     clearTimeout(skipToastTimer);
     skipToastTimer = setTimeout(() => t.classList.remove('ytpc-show'), 1600);
@@ -391,7 +392,7 @@
       if (drag.moved) {
         cfg.panelPos = { left: panel.style.left, top: panel.style.top };
         saveCfg();
-        setStatus('패널 위치 저장됨');
+        setStatus(T('st_panel_saved'));
       } else {
         panel.classList.toggle('ytpc-hidden'); // 클릭 = 접기/펼치기
       }
@@ -402,7 +403,7 @@
       cfg.panelPos = null;
       saveCfg();
       positionPanel();
-      setStatus('패널 위치 초기화됨');
+      setStatus(T('st_panel_reset'));
     });
   }
 
@@ -430,14 +431,14 @@
       l.appendChild(document.createTextNode(label));
       return l;
     }
-    body.appendChild(row('영상 광고 자동 스킵', 'adSkip'));
-    body.appendChild(row('광고 중 음소거', 'adMute'));
-    const cmtRow = row('💬 댓글 숨기기 (몰입 모드)', 'hideComments');
+    body.appendChild(row(T('row_adskip'), 'adSkip'));
+    body.appendChild(row(T('row_admute'), 'adMute'));
+    const cmtRow = row(T('row_hide_comments'), 'hideComments');
     cmtRow.querySelector('input').addEventListener('change', applyCommentVisibility);
     body.appendChild(cmtRow);
-    body.appendChild(row('스폰서 구간 자동 스킵', 'sbSkip'));
+    body.appendChild(row(T('row_sbskip'), 'sbSkip'));
 
-    const markRow = row('스폰서 구간 마킹 표시', 'sbMark');
+    const markRow = row(T('row_sbmark'), 'sbMark');
     markRow.querySelector('input').addEventListener('change', e => {
       if (e.target.checked) drawMarkers(); else clearMarkers();
     });
@@ -457,7 +458,7 @@
       dot.className = 'ytpc-dot';
       dot.style.background = CAT_META[k].color;
       l.appendChild(c); l.appendChild(dot);
-      l.appendChild(document.createTextNode(CAT_META[k].label));
+      l.appendChild(document.createTextNode(T(CAT_META[k].labelKey)));
       cats.appendChild(l);
     });
     body.appendChild(cats);
@@ -466,7 +467,7 @@
     zr.className = 'ytpc-zoomrow';
     const bIn = document.createElement('button'); bIn.textContent = '＋';
     const bOut = document.createElement('button'); bOut.textContent = '－';
-    const bRs = document.createElement('button'); bRs.textContent = '리셋';
+    const bRs = document.createElement('button'); bRs.textContent = T('zoom_reset');
     zoomLbl = document.createElement('span');
     zoomLbl.className = 'ytpc-zoomlbl'; zoomLbl.textContent = '100%';
     bIn.addEventListener('click', () => { zoom.s = Math.min(4, zoom.s * 1.25); applyZoom(); updateZoomLabel(); });
@@ -477,10 +478,10 @@
 
     const posRow = document.createElement('label');
     posRow.className = 'ytpc-row ytpc-posrow';
-    posRow.appendChild(document.createTextNode('\uD83D\uDCCC 패널 위치'));
+    posRow.appendChild(document.createTextNode(T('pos_label')));
     const posSel = document.createElement('select');
     posSel.id = 'ytpc-posmode';
-    [['corner', '우측 하단'], ['player', '플레이어 위'], ['below', '플레이어 아래']].forEach(([val, label]) => {
+    [['corner', T('pos_corner')], ['player', T('pos_player')], ['below', T('pos_below')]].forEach(([val, label]) => {
       const o = document.createElement('option');
       o.value = val; o.textContent = label;
       posSel.appendChild(o);
@@ -491,14 +492,14 @@
       cfg.panelPos = null; // 수동 위치 초기화
       saveCfg();
       positionPanel();
-      setStatus(cfg.panelMode === 'player' ? '플레이어 하단에 고정' : '우측 하단에 고정');
+      setStatus(T(cfg.panelMode === 'player' ? 'st_pinned_player' : 'st_pinned_corner'));
     });
     posRow.appendChild(posSel);
     body.appendChild(posRow);
 
     const opRow = document.createElement('label');
     opRow.className = 'ytpc-row';
-    opRow.appendChild(document.createTextNode('\uD83C\uDF17 투명도'));
+    opRow.appendChild(document.createTextNode(T('op_label')));
     const opRange = document.createElement('input');
     opRange.type = 'range'; opRange.min = '30'; opRange.max = '100';
     opRange.id = 'ytpc-opacity';
@@ -522,19 +523,26 @@
 
     const libRow = document.createElement('div');
     libRow.className = 'ytpc-zoomrow';
-    const bLib = document.createElement('button'); bLib.textContent = '목록';
-    const bSave = document.createElement('button'); bSave.textContent = '저장';
-    bLib.title = '다시보기 목록 열기';
-    bSave.title = '현재 영상을 다시보기에 저장';
+    const bLib = document.createElement('button'); bLib.textContent = T('btn_list');
+    const bSave = document.createElement('button'); bSave.textContent = T('btn_save');
+    const bShot = document.createElement('button'); bShot.textContent = T('btn_shot');
+    bLib.title = T('title_list');
+    bSave.title = T('title_save');
+    bShot.title = T('title_shot');
     bLib.addEventListener('click', openLibrary);
     bSave.addEventListener('click', () => openSaveDialog());
-    libRow.appendChild(bLib); libRow.appendChild(bSave);
+    bShot.addEventListener('click', takeScreenshot);
+    libRow.appendChild(bLib); libRow.appendChild(bSave); libRow.appendChild(bShot);
     body.appendChild(libRow);
 
     const hint = document.createElement('div');
     hint.className = 'ytpc-hint';
-    hint.textContent = '줌 100% 초과 시 영상 드래그로 이동';
+    hint.textContent = T('zoom_hint');
     body.appendChild(hint);
+    const keyHint = document.createElement('div');
+    keyHint.className = 'ytpc-hint';
+    keyHint.textContent = T('hint_keys');
+    body.appendChild(keyHint);
 
     statusEl = document.createElement('div');
     statusEl.className = 'ytpc-status';
@@ -552,7 +560,7 @@
   function libWrite(videos) {
     library = videos || {};
     chrome.storage.local.set({ tp_library: { videos: library } })
-      .catch(() => setStatus('저장 공간 부족'));
+      .catch(() => setStatus(T('st_quota')));
   }
   /* ---------- 백업: JSON 내보내기/가져오기 ---------- */
   function exportBackup() {
@@ -570,7 +578,7 @@
     document.body.appendChild(a);
     a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-    setStatus('백업 파일 저장됨');
+    setStatus(T('st_backup_saved'));
   }
   function importBackup(file) {
     const r = new FileReader();
@@ -578,11 +586,11 @@
       let data = null;
       try { data = JSON.parse(r.result); } catch (e) {}
       if (!data || data.app !== 'TubePilot' || !data.library || typeof data.library !== 'object') {
-        setStatus('복원 실패: TubePilot 백업 파일이 아님');
+        setStatus(T('st_backup_bad'));
         return;
       }
       const n = Object.keys(data.library).length;
-      if (!confirm('TubePilot 백업을 복원할까요?\n- 저장된 영상 ' + n + '개\n현재 설정과 라이브러리가 백업 내용으로 교체됩니다.')) return;
+      if (!confirm(T('confirm_restore', { n }))) return;
       const newCfg = Object.assign({}, DEFAULTS, data.cfg || {});
       chrome.storage.local.set({ tp_cfg: newCfg }, () => {
         cfg = newCfg;
@@ -591,12 +599,81 @@
         if (p) p.remove();
         try { buildPanel(); } catch (e) {}
         renderLibTags(); renderLibList();
-        setStatus('백업 복원됨 (영상 ' + n + '개)');
+        setStatus(T('st_restored', { n }));
       });
     };
     r.readAsText(file);
   }
   function isSaved(vid) { return !!libLoad()[vid]; }
+
+  /* ================= 스크린샷 (Alt+S) ================= */
+  // chrome.tabs.captureVisibleTab은 content script에서 호출 불가 →
+  // background service worker에 요청 후 영상 영역만 잘라 PNG로 저장
+  function takeScreenshot() {
+    const v = getVideo();
+    if (!v || !v.videoWidth) { setStatus(T('shot_no_video')); return; }
+    const r = v.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const x = Math.max(0, r.left), y = Math.max(0, r.top);
+    const w = Math.min(r.width, window.innerWidth - x);
+    const h = Math.min(r.height, window.innerHeight - y);
+    if (w <= 0 || h <= 0) { setStatus(T('shot_no_video')); return; }
+    if (!chrome.runtime || !chrome.runtime.sendMessage) { setStatus(T('shot_fail')); return; }
+    chrome.runtime.sendMessage({ type: 'TP_CAPTURE' }, (res) => {
+      if ((chrome.runtime && chrome.runtime.lastError) || !res || !res.dataUrl) {
+        setStatus(T('shot_fail')); return;
+      }
+      cropAndDownload(res.dataUrl, x * dpr, y * dpr, w * dpr, h * dpr);
+    });
+  }
+  function cropAndDownload(dataUrl, sx, sy, sw, sh) {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(sw)); c.height = Math.max(1, Math.round(sh));
+        c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        c.toBlob((blob) => {
+          if (!blob) { setStatus(T('shot_fail')); return; }
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          const d = new Date(), p2 = (n) => String(n).padStart(2, '0');
+          a.download = 'tubepilot-' + (getVideoId() || 'shot') + '-' +
+            d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' +
+            p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.png';
+          document.body.appendChild(a); a.click();
+          setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+          setStatus(T('shot_saved'));
+        }, 'image/png');
+      } catch (e) { setStatus(T('shot_fail')); }
+    };
+    img.onerror = () => setStatus(T('shot_fail'));
+    img.src = dataUrl;
+  }
+
+  /* ================= 단축키 ================= */
+  // Alt+S 캡처 · Alt+H 댓글 숨기기 토글 · Alt+B 다시보기 저장
+  function onHotkey(e) {
+    if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    const t = e.target;
+    if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    if (t && t.isContentEditable) return;
+    const k = (e.key || '').toLowerCase();
+    if (k === 's') { e.preventDefault(); takeScreenshot(); }
+    else if (k === 'h') { e.preventDefault(); toggleComments(); }
+    else if (k === 'b') { e.preventDefault(); openSaveDialog(); }
+  }
+  function toggleComments() {
+    cfg.hideComments = !cfg.hideComments;
+    saveCfg();
+    applyCommentVisibility();
+    // 패널 체크박스도 동기화
+    const p = document.getElementById('ytpc-panel');
+    const row = p && [...p.querySelectorAll('label.ytpc-row')]
+      .find(l => l.textContent.includes(T('row_hide_comments')));
+    const box = row && row.querySelector('input');
+    if (box) box.checked = !!cfg.hideComments;
+  }
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -643,7 +720,7 @@
   let saveOverlay = null;
   function openSaveDialog(existing) {
     const meta = existing || getVideoMeta();
-    if (!meta) { setStatus('저장할 영상이 없어요'); return; }
+    if (!meta) { setStatus(T('st_no_meta')); return; }
     closeSaveDialog();
     const saved = libLoad()[meta.id];
     const auto = saved ? [] : extractHashtags();
@@ -652,19 +729,19 @@
     saveOverlay.id = 'ytpc-save-overlay';
     saveOverlay.innerHTML =
       '<div id="ytpc-save">' +
-        '<h3>' + (saved ? '저장 정보 편집' : '다시보기 저장') + '</h3>' +
+        '<h3>' + (saved ? T('save_title_edit') : T('save_title_new')) + '</h3>' +
         '<div class="ytpc-save-title"></div>' +
-        '<label>태그 (쉼표로 구분)</label>' +
+        '<label>' + T('save_tags_label') + '</label>' +
         '<input type="text" id="ytpc-f-tags" value="">' +
         (auto.length ? '<div class="ytpc-autotags">' + auto.map(t =>
           '<span data-tag="' + escapeHtml(t) + '">#' + escapeHtml(t) + ' +</span>').join('') +
           '</div>' : '') +
-        '<label>키워드 / 메모 (나중에 이 영상을 떠올릴 단서)</label>' +
-        '<textarea id="ytpc-f-notes" placeholder="예: 자막 번역 팁, 12:30부터 실전 데모"></textarea>' +
+        '<label>' + T('save_notes_label') + '</label>' +
+        '<textarea id="ytpc-f-notes" placeholder="' + escapeHtml(T('save_notes_ph')) + '"></textarea>' +
         '<div class="ytpc-save-btns">' +
-          '<button class="ytpc-btn-ok">' + (saved ? '수정' : '저장') + '</button>' +
-          (saved ? '<button class="ytpc-btn-del">삭제</button>' : '') +
-          '<button class="ytpc-btn-cancel">취소</button>' +
+          '<button class="ytpc-btn-ok">' + (saved ? T('btn_ok_edit') : T('btn_ok_new')) + '</button>' +
+          (saved ? '<button class="ytpc-btn-del">' + T('card_del') + '</button>' : '') +
+          '<button class="ytpc-btn-cancel">' + T('btn_cancel') + '</button>' +
         '</div>' +
       '</div>';
 
@@ -696,14 +773,14 @@
       };
       libWrite(fresh);
       closeSaveDialog();
-      setStatus('저장됨: ' + fresh[meta.id].title.slice(0, 24));
+      setStatus(T('st_saved', { title: fresh[meta.id].title.slice(0, 24) }));
       if (currentVideoId === meta.id) showRecall(meta.id);
     });
     const delBtn = saveOverlay.querySelector('.ytpc-btn-del');
     if (delBtn) delBtn.addEventListener('click', () => {
-      if (!confirm('이 영상을 다시보기 목록에서 삭제할까요?')) return;
+      if (!confirm(T('confirm_del_video'))) return;
       const fresh = libLoad(); delete fresh[meta.id]; libWrite(fresh);
-      closeSaveDialog(); hideRecall(); setStatus('삭제됨');
+      closeSaveDialog(); hideRecall(); setStatus(T('st_deleted'));
     });
     saveOverlay.querySelector('.ytpc-btn-cancel').addEventListener('click', closeSaveDialog);
     saveOverlay.addEventListener('click', e => { if (e.target === saveOverlay) closeSaveDialog(); });
@@ -725,10 +802,10 @@
     libOverlay.innerHTML =
       '<div id="ytpc-lib">' +
         '<div class="ytpc-lib-head">' +
-          '<input type="text" id="ytpc-lib-q" placeholder="제목 · 채널 · 태그 · 메모 검색…">' +
-          '<button id="ytpc-lib-export" title="설정+라이브러리를 JSON 파일로 저장">백업</button>' +
-          '<button id="ytpc-lib-import" title="JSON 백업 파일에서 복원">복원</button>' +
-          '<button id="ytpc-lib-close">닫기</button>' +
+          '<input type="text" id="ytpc-lib-q" placeholder="' + escapeHtml(T('lib_search_ph')) + '">' +
+          '<button id="ytpc-lib-export" title="' + escapeHtml(T('title_backup')) + '">' + T('btn_backup') + '</button>' +
+          '<button id="ytpc-lib-import" title="' + escapeHtml(T('title_restore')) + '">' + T('btn_restore') + '</button>' +
+          '<button id="ytpc-lib-close">' + T('btn_close') + '</button>' +
         '</div>' +
         '<div class="ytpc-tagbar" id="ytpc-lib-tags"></div>' +
         '<div class="ytpc-lib-list" id="ytpc-lib-list"></div>' +
@@ -802,8 +879,8 @@
       .sort((a, b) => b.savedAt - a.savedAt);
     list.innerHTML = '';
     if (!videos.length) {
-      list.innerHTML = '<div class="ytpc-empty">저장된 영상이 없어요.<br>' +
-        '유튜브에서 패널의 "저장" 버튼으로 추가해 보세요.</div>';
+      list.innerHTML = '<div class="ytpc-empty">' + T('lib_empty') + '<br>' +
+        T('lib_empty_hint') + '</div>';
       return;
     }
     videos.forEach(v => {
@@ -817,12 +894,12 @@
           ((v.tags && v.tags.length) ? '<div class="ytpc-card-tags">' +
             v.tags.map(t => '<span>#' + escapeHtml(t) + '</span>').join('') + '</div>' : '') +
           (v.notes ? '<div class="ytpc-card-notes"></div>' : '') +
-          '<div class="ytpc-card-actions"><button data-act="edit">편집</button>' +
-          '<button data-act="del">삭제</button></div>' +
+          '<div class="ytpc-card-actions"><button data-act="edit">' + T('card_edit') + '</button>' +
+          '<button data-act="del">' + T('card_del') + '</button></div>' +
         '</div>';
       card.querySelector('.ytpc-card-title').textContent = v.title;
       card.querySelector('.ytpc-card-sub').textContent =
-        (v.channel ? v.channel + ' · ' : '') + new Date(v.savedAt).toLocaleDateString();
+        (v.channel ? v.channel + ' · ' : '') + new Date(v.savedAt).toLocaleDateString(TP_LANG);
       const notesEl = card.querySelector('.ytpc-card-notes');
       if (notesEl) notesEl.textContent = v.notes;
       card.querySelector('img').addEventListener('click', () => {
@@ -834,7 +911,7 @@
       });
       card.querySelector('[data-act="del"]').addEventListener('click', e => {
         e.stopPropagation();
-        if (!confirm('"' + v.title.slice(0, 30) + '" 삭제할까요?')) return;
+        if (!confirm(T('confirm_del_item', { title: v.title.slice(0, 30) }))) return;
         const fresh = libLoad(); delete fresh[v.id]; libWrite(fresh);
         renderLibTags(); renderLibList();
         if (currentVideoId === v.id) hideRecall();
@@ -856,12 +933,12 @@
     const el = document.createElement('div');
     el.id = 'ytpc-recall';
     el.innerHTML =
-      '<div><b>다시보기 저장됨</b> · ' + new Date(v.savedAt).toLocaleDateString() + '</div>' +
+      '<div><b>' + T('recall_title') + '</b> · ' + new Date(v.savedAt).toLocaleDateString(TP_LANG) + '</div>' +
       ((v.tags && v.tags.length) ? '<div class="ytpc-recall-tags">' +
         v.tags.map(t => '<span>#' + escapeHtml(t) + '</span>').join('') + '</div>' : '') +
       (v.notes ? '<div class="ytpc-recall-notes"></div>' : '') +
-      '<div class="ytpc-recall-btns"><button data-a="lib">목록</button>' +
-      '<button data-a="edit">편집</button><button data-a="hide">닫기</button></div>';
+      '<div class="ytpc-recall-btns"><button data-a="lib">' + T('recall_list') + '</button>' +
+      '<button data-a="edit">' + T('recall_edit') + '</button><button data-a="hide">' + T('recall_hide') + '</button></div>';
     if (v.notes) el.querySelector('.ytpc-recall-notes').textContent = v.notes;
     el.addEventListener('click', e => e.stopPropagation());
     el.querySelector('[data-a="lib"]').addEventListener('click', openLibrary);
@@ -926,12 +1003,28 @@
       const p = document.getElementById('ytpc-panel');
       if (p) p.style.display = document.fullscreenElement ? 'none' : '';
     });
+    document.addEventListener('keydown', onHotkey);
+    // 팝업에서 언어 변경 → 패널 즉시 리빌드
+    try {
+      if (chrome.storage.onChanged && chrome.storage.onChanged.addListener) {
+        chrome.storage.onChanged.addListener((changes, area) => {
+          if (area === 'local' && changes && changes.tp_lang) {
+            tpSetLang(tpPickLang(changes.tp_lang.newValue, navigator.language));
+            const p = document.getElementById('ytpc-panel');
+            if (p) p.remove();
+            closeSaveDialog(); closeLibrary(); hideRecall();
+            try { buildPanel(); } catch (e) {}
+          }
+        });
+      }
+    } catch (e) {}
     try { tick(); } catch (e) { console.error('[TubePilot] tick error:', e); }
   }
   // MV3 부트: 저장소에서 설정/라이브러리 로드 후 시작
   (async function boot() {
     try {
-      const s = await chrome.storage.local.get(['tp_enabled', 'tp_cfg', 'tp_library']);
+      const s = await chrome.storage.local.get(['tp_enabled', 'tp_cfg', 'tp_library', 'tp_lang']);
+      tpSetLang(tpPickLang(s.tp_lang, navigator.language));
       if (s.tp_enabled === false) { console.log('[TubePilot] disabled'); return; }
       cfg = Object.assign({}, DEFAULTS, s.tp_cfg || {});
       cfg.cats = Object.assign({}, DEFAULTS.cats, cfg.cats || {});

@@ -1,91 +1,105 @@
 <p align="center">
+  <a href="README.md"><strong>English</strong></a> ·
+  <a href="README.ko.md">한국어</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.es.md">Español</a> ·
+  <a href="README.pt.md">Português</a>
+</p>
+
+<p align="center">
   <img src="assets/hero.png" alt="TubePilot" width="720">
 </p>
 
 <p align="center">
-  <strong>PC 유튜브를 ReVanced처럼.</strong><br>
-  광고는 넘기고, 스폰서는 건너뛰고, 보고 싶은 영상은 태그로 저장하세요.
+  <strong>YouTube on PC, like ReVanced.</strong><br>
+  Skip ads, jump over sponsors, and save videos with tags for later.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.3.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.8.0-blue" alt="version">
   <img src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Brave-orange" alt="platform">
+  <img src="https://img.shields.io/badge/languages-ko%20%7C%20en%20%7C%20ja%20%7C%20es%20%7C%20pt-purple" alt="languages">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="prs welcome">
 </p>
 
 ---
 
-## ✨ 기능
+## ✨ Features
 
-| | 기능 | 설명 |
+| | Feature | Description |
 |---|---|---|
-| ⏭ | **영상 광고 자동 스킵** | 프리롤/미드롤 감지 시 스킵 버튼 자동 클릭. 스킵 불가 광고는 끝으로 시크 + 16배속 + 음소거로 통과하고, 끝나면 원래 음량/배속으로 복원 |
-| 🟩 | **SponsorBlock 마킹 + 스킵** | 스폰서/인트로/아웃트로/자기홍보 구간을 진행 바에 색깔 마커로 표시하고 자동 스킵. 카테고리별 on/off 가능 (공개 SponsorBlock API 사용) |
-| 🔍 | **영상 줌/패닝** | ＋/－ 버튼으로 최대 400% 확대, 줌 상태에서 영상 드래그로 화면 이동 |
-| 📚 | **다시보기 라이브러리** | 태그 + 키워드/메모와 함께 영상 저장. 설명란의 `#해시태그` 자동 추출, 태그 칩 필터 + 제목·채널·태그·메모 통합 검색. 저장된 영상을 다시 열면 **리콜 배너**가 태그와 메모를 보여줘서 "왜 저장했더라"를 바로 유추 가능 |
+| ⏭ | **Auto-skip video ads** | Auto-clicks the skip button when pre-roll/mid-roll ads are detected. Unskippable ads are seeked to the end + 16x speed + muted, then your original volume/rate is restored |
+| 🟩 | **SponsorBlock marking + skip** | Sponsor/intro/outro/self-promo segments shown as colored markers on the progress bar, with auto-skip. Per-category on/off (uses the public SponsorBlock API) |
+| 🔍 | **Video zoom & pan** | Zoom up to 400% with ＋/－ buttons, drag the video to pan while zoomed |
+| 💬 | **Hide comments (focus mode)** | Hides the entire comment section so you can focus on the video |
+| 📚 | **Watch-later library** | Save videos with tags + keywords/notes. Auto-extracts `#hashtags` from descriptions, tag-chip filters + unified search across title/channel/tags/notes. Reopening a saved video shows a **recall banner** with its tags and notes, so you instantly remember why you saved it |
+| 💾 | **Backup & restore** | Export settings + library as a JSON file and restore them anytime |
+| 📷 | **Screenshot** | Save the current video frame as a PNG file (`Alt+S`), cropped to the player area |
+| ⌨️ | **Keyboard shortcuts** | `Alt+S` capture · `Alt+H` hide-comments toggle · `Alt+B` save dialog |
 
-모든 기능은 유튜브 페이지 우측 하단의 🎬 패널에서 켜고 끌 수 있습니다.
-**패널은 헤더 드래그로 원하는 위치에 둘 수 있고** (위치는 저장됨, 더블클릭으로 초기화),
-패널 설정에서 **플레이어 하단 고정**으로 바꾸면 플레이어 크기가 바뀌어도 따라다닙니다.
-진행 바의 색깔 마커를 **클릭하면 해당 구간 시작으로 바로 이동**합니다.
+Everything is toggled from the 🎬 panel at the bottom-right of YouTube pages.
+**Drag the panel header to place it anywhere** (position is saved, double-click to reset).
+Pin it **below the player** in panel settings and it follows player resizes.
+**Click a colored marker** on the progress bar to jump straight to that segment's start.
 
-## 📦 설치
+🌍 UI available in **한국어 · English · 日本語 · Español · Português** — auto-detected from your browser, switchable anytime from the extension popup.
 
-### A. 브라우저 확장 (권장)
+## 📦 Install
 
-1. 이 레포를 클론하거나 [최신 릴리즈](https://github.com/sapgun/tubepilot/releases)에서 `tubepilot-1.3.0.zip` 다운로드 후 압축 해제
-2. `chrome://extensions` 접속 → 우측 상단 **개발자 모드** 켜기
-3. **압축해제된 확장 프로그램을 로드합니다** 클릭 → `extension/` 폴더 선택
-4. youtube.com 접속 → 우측 하단에 🎬 패널이 뜨면 완료
+### A. Browser extension (recommended)
 
-> 툴바의 TubePilot 아이콘으로 전체 사용 on/off 가능. 세부 설정은 유튜브 페이지의 🎬 패널에서 변경.
+1. Clone this repo, or download + unzip `tubepilot-1.8.0.zip` from the [latest release](https://github.com/sapgun/tubepilot/releases)
+2. Go to `chrome://extensions` → enable **Developer mode** (top-right)
+3. Click **Load unpacked** → select the `extension/` folder
+4. Open youtube.com → done when the 🎬 panel appears at the bottom-right
 
-### B. 유저스크립트 (대안)
+> The TubePilot toolbar icon controls master on/off and language. Fine-grained settings live in the 🎬 panel on YouTube pages.
 
-Tampermonkey / Violentmonkey 사용자라면 `tubepilot.user.js`를 그대로 사용할 수 있습니다.
-매니저 설치 후 파일을 브라우저로 열면 설치 확인창이 뜹니다.
-(`@updateURL`이 있어 새 버전 푸시 시 자동 업데이트 확인)
+### B. Userscript (alternative)
 
-## 🚀 사용법
+Tampermonkey / Violentmonkey users can use `tubepilot.user.js` directly.
+Open the file in your browser after installing a userscript manager and confirm the install prompt.
+(`@updateURL` checks for new versions automatically)
 
-- **광고 스킵**: 켜두기만 하면 됩니다. 광고가 나오면 자동으로 넘어갑니다.
-- **스폰서 구간**: 진행 바의 색깔 마커로 구간을 확인하고, 원치 않는 카테고리는 패널에서 끄세요.
-- **줌**: 패널의 ＋/－ 버튼으로 확대, 100% 초과 상태에서 영상을 드래그하면 화면을 이동합니다.
-- **다시보기 저장**: 패널의 **저장** 버튼 → 태그와 메모를 적어 저장. 설명란의 `#해시태그`는 클릭 한 번으로 태그에 추가됩니다.
-- **다시보기 목록**: 패널의 **목록** 버튼 → 태그 칩으로 필터링하거나 검색창에 키워드를 입력하세요.
+## 🚀 Usage
 
-## 🔒 프라이버시
+- **Ad skip**: just leave it on. Ads are skipped automatically.
+- **Sponsor segments**: check the colored markers on the progress bar; turn off unwanted categories in the panel.
+- **Zoom**: ＋/－ buttons in the panel; drag the video to pan when zoomed over 100%.
+- **Save for later**: panel **Save** button → add tags and notes. `#hashtags` from the description can be added with one click.
+- **Library**: panel **List** button → filter by tag chips or type in the search box.
 
-- 설정과 다시보기 라이브러리는 **브라우저 로컬에만 저장**됩니다. 외부 서버로 전송되지 않습니다.
-- SponsorBlock 구간 조회 시 영상 ID가 공개 SponsorBlock API(`sponsor.ajay.app`)로 전송됩니다. 그 외의 개인정보는 전송되지 않습니다.
+## 🔒 Privacy
+
+- Settings and the watch-later library are stored **only in your browser's local storage**. Never sent anywhere.
+- When looking up sponsor segments, the video ID is sent to the public SponsorBlock API (`sponsor.ajay.app`). No other personal data is transmitted.
 
 ## ❓ FAQ
 
-**uBlock Origin과 같이 써도 되나요?**
-네. TubePilot은 네트워크 차단이 아니라 플레이어 단위 스킵이라 충돌하지 않습니다.
+**Can I use it with uBlock Origin?**
+Yes. TubePilot skips at the player level instead of blocking network requests, so they don't conflict.
 
-**스폰서 구간 마커가 안 보여요.**
-SponsorBlock 데이터는 커뮤니티 기여 기반이라 구간 정보가 없는 영상도 있습니다.
+**Sponsor segment markers don't show up.**
+SponsorBlock data is community-contributed, so some videos simply have no segment data.
 
-**Safari / Firefox에서도 되나요?**
-유저스크립트(`tubepilot.user.js`) 버전으로 사용할 수 있습니다.
+**Does it work on Safari / Firefox?**
+Yes, via the userscript (`tubepilot.user.js`) version.
 
-**유튜브 업데이트로 안 되면 어떻게 하나요?**
-유튜브 DOM 구조가 바뀌면 일부 기능이 깨질 수 있습니다. [이슈](https://github.com/sapgun/tubepilot/issues)에 제보해 주세요.
+**What if a YouTube update breaks it?**
+YouTube DOM changes can break features. Please [file an issue](https://github.com/sapgun/tubepilot/issues).
 
-## 🗺 로드맵
+## 🗺 Roadmap
 
-- [ ] Chrome 웹스토어 정식 게시
-- [ ] 키보드 단축키 지원
-- [ ] 다시보기 라이브러리 내보내기/가져오기 (JSON)
-- [ ] 저장 시점 타임스탬프 메모
+- [ ] Publish on the Chrome Web Store
+- [ ] Keyboard shortcuts
+- [ ] Timestamped notes when saving
 
-## 🤝 기여
+## 🤝 Contributing
 
-버그 제보와 기능 제안은 [이슈](https://github.com/sapgun/tubepilot/issues)로, 코드 기여는 PR로 환영합니다.
-PR 전에는 `cd extension/test && npm install && npm test`로 테스트를 돌려주세요.
+Bug reports and feature requests via [issues](https://github.com/sapgun/tubepilot/issues); code contributions via PR.
+Before a PR, please run `cd extension/test && npm install && npm test`.
 
-## 📄 라이선스
+## 📄 License
 
-MIT — 자세한 내용은 [LICENSE](LICENSE)를 참고하세요.
+MIT — see [LICENSE](LICENSE).
