@@ -38,10 +38,11 @@
   "permissions": [
     "storage",
     "activeTab",
-    "clipboardWrite"
+    "clipboardWrite",
+    "downloads"
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "version": "1.9.1"
+  "version": "1.9.2"
 }

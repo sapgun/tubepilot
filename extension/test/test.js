@@ -328,6 +328,14 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
     cssText.includes('html.ytpc-capturing #ytpc-lib-overlay') &&
     cssText.includes('html.ytpc-capturing #ytpc-bm-overlay') &&
     cssText.includes('html.ytpc-capturing .ytpc-skiptoast'));
+  ok('CSS: 캡처 중 유튜브 플레이어 UI 숨김 (컨트롤·자막·오버레이)',
+    cssText.includes('html.ytpc-capturing .ytp-chrome-bottom') &&
+    cssText.includes('html.ytpc-capturing .ytp-chrome-top') &&
+    cssText.includes('html.ytpc-capturing .ytp-gradient-bottom') &&
+    cssText.includes('html.ytpc-capturing .ytp-player-content') &&
+    cssText.includes('html.ytpc-capturing .ytp-caption-window-container') &&
+    cssText.includes('html.ytpc-capturing .ytp-bezel') &&
+    cssText.includes('html.ytpc-capturing .ytp-pause-overlay'));
   // 캡처 진행 중에는 클래스가 붙어 있다가 완료 후 떨어짐
   window.chrome.runtime.sendMessage = (msg, cb) =>
     setTimeout(() => cb({ dataUrl: 'data:image/png;base64,AAA' }), 10);
@@ -350,6 +358,7 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   window.HTMLCanvasElement.prototype.toBlob = function (cb) {
     cb(new window.Blob(['fake'], { type: 'image/png' }));
   };
+  window.HTMLCanvasElement.prototype.toDataURL = () => 'data:image/png;base64,AAA';
   window.Image = function () {
     const o = {};
     setTimeout(() => {
@@ -361,8 +370,13 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   window.URL.createObjectURL = () => 'blob:fake';
   window.URL.revokeObjectURL = () => {};
   const shotStatus = () => document.querySelector('#ytpc-panel .ytpc-status').textContent;
+  let sentDownloads = [];
+  let downloadOk = true;
   const fireShot = () => {
-    window.chrome.runtime.sendMessage = (msg, cb) => cb({ dataUrl: 'data:image/png;base64,AAA' });
+    window.chrome.runtime.sendMessage = (msg, cb) => {
+      if (msg && msg.type === 'TP_DOWNLOAD') { sentDownloads.push(msg); cb({ ok: downloadOk }); }
+      else cb({ dataUrl: 'data:image/png;base64,AAA' });
+    };
     document.dispatchEvent(new window.KeyboardEvent('keydown',
       { key: 's', altKey: true, bubbles: true }));
   };
@@ -376,23 +390,34 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
     clipboardWrites[0][0].mime['image/png'],
     'writes=' + clipboardWrites.length);
   ok('스크린샷 clipboard 모드: 안내 문구', shotStatus().includes('클립보드'), shotStatus());
-  // both 모드: 클립보드 + 다운로드 둘 다
+  // both 모드: 클립보드 + background 다운로드 둘 다
   await window.chrome.storage.local.set({ tp_cfg: { shotMode: 'both' } });
-  clipboardWrites = [];
+  clipboardWrites = []; sentDownloads = [];
   fireShot();
   await sleep(350);
-  ok('스크린샷 both 모드: 클립보드+다운로드',
-    clipboardWrites.length === 1 && !!document.querySelector('a[download]'),
-    'writes=' + clipboardWrites.length);
-  // download 모드 (기본): 앵커 다운로드만
+  ok('스크린샷 both 모드: 클립보드+background 다운로드',
+    clipboardWrites.length === 1 && sentDownloads.length === 1 &&
+    sentDownloads[0].filename.startsWith('tubepilot-') &&
+    sentDownloads[0].dataUrl.startsWith('data:image/png'),
+    'writes=' + clipboardWrites.length + ' dl=' + sentDownloads.length);
+  // download 모드 (기본): background 다운로드만
   await window.chrome.storage.local.set({ tp_cfg: { shotMode: 'download' } });
-  clipboardWrites = [];
+  clipboardWrites = []; sentDownloads = [];
   fireShot();
   await sleep(350);
-  ok('스크린샷 download 모드: 다운로드만',
-    clipboardWrites.length === 0 && !!document.querySelector('a[download]'),
-    'writes=' + clipboardWrites.length);
+  ok('스크린샷 download 모드: background 다운로드만',
+    clipboardWrites.length === 0 && sentDownloads.length === 1,
+    'writes=' + clipboardWrites.length + ' dl=' + sentDownloads.length);
   ok('스크린샷 download 모드: 안내 문구', shotStatus().includes('저장'), shotStatus());
+  // background 다운로드 실패 → 앵커 폴백
+  downloadOk = false; sentDownloads = [];
+  document.querySelectorAll('a[download]').forEach(a => a.remove());
+  fireShot();
+  await sleep(350);
+  ok('스크린샷 다운로드 실패 시 앵커 폴백',
+    sentDownloads.length === 1 && !!document.querySelector('a[download]'),
+    'dl=' + sentDownloads.length);
+  downloadOk = true;
   await window.chrome.storage.local.set({ tp_cfg: {} });
   // Alt+H → 댓글 숨기기 토글
   const cmtBox2 = [...document.querySelectorAll('#ytpc-panel label.ytpc-row')]

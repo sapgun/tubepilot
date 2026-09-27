@@ -10,6 +10,23 @@ html.ytpc-capturing #ytpc-save-overlay,
 html.ytpc-capturing #ytpc-lib-overlay,
 html.ytpc-capturing #ytpc-bm-overlay,
 html.ytpc-capturing .ytpc-skiptoast { display: none !important; }
+/* 유튜브 자체 플레이어 UI도 캡처 순간 숨김 → 영상 픽셀만 남김
+   (컨트롤 바·제목 바·그라데이션·자막/카드/엔드스크린 오버레이·중앙 플래시·스피너) */
+html.ytpc-capturing .ytp-chrome-top,
+html.ytpc-capturing .ytp-chrome-bottom,
+html.ytpc-capturing .ytp-gradient-top,
+html.ytpc-capturing .ytp-gradient-bottom,
+html.ytpc-capturing .ytp-player-content,
+html.ytpc-capturing .ytp-bezel,
+html.ytpc-capturing .ytp-bezel-text-wrapper,
+html.ytpc-capturing .ytp-spinner,
+html.ytpc-capturing .ytp-pause-overlay,
+html.ytpc-capturing .ytp-cards-teaser,
+html.ytpc-capturing .ytp-cards-button,
+html.ytpc-capturing .ytp-suggestion-set,
+html.ytpc-capturing .ytp-videowall-still,
+html.ytpc-capturing .ytp-endscreen-content,
+html.ytpc-capturing .ytp-caption-window-container { display: none !important; }
 #ytpc-panel .ytpc-head { padding: 8px 10px; font-weight: 700; cursor: move;
   display: flex; justify-content: space-between; align-items: center; }
 #ytpc-panel .ytpc-body { padding: 2px 10px 10px; border-top: 1px solid #2a2a2a; }

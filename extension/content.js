@@ -671,6 +671,27 @@
     return imgW / innerW;
   }
   if (typeof window !== 'undefined') window.__tpCaptureScale = tpCaptureScale;
+  // 다운로드: background의 chrome.downloads 경유 (1순위) → 앵커 폴백 (2순위)
+  function tpDownloadPng(dataUrl, filename, cb) {
+    let settled = false;
+    const done = (ok) => { if (!settled) { settled = true; cb(ok); } };
+    try {
+      chrome.runtime.sendMessage({ type: 'TP_DOWNLOAD', dataUrl, filename }, (res) => {
+        done(!(chrome.runtime && chrome.runtime.lastError) && !!(res && res.ok));
+      });
+    } catch (e) { done(false); return; }
+    setTimeout(() => done(false), 8000); // background 무응답 안전망
+  }
+  function downloadViaAnchor(blob, filename) {
+    try {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { try { URL.revokeObjectURL(a.href); } catch (e) {} a.remove(); }, 1500);
+      return true;
+    } catch (e) { return false; }
+  }
   function finishShot(canvas) {
     canvas.toBlob((blob) => {
       if (!blob) { setStatus(T('shot_fail')); return; }
@@ -678,16 +699,17 @@
         : cfg.shotMode === 'both' ? 'both' : 'download';
       const canCopy = typeof window.ClipboardItem !== 'undefined' &&
         navigator.clipboard && typeof navigator.clipboard.write === 'function';
+      const d = new Date(), p2 = (n) => String(n).padStart(2, '0');
+      const fileName = 'tubepilot-' + (getVideoId() || 'shot') + '-' +
+        d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' +
+        p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.png';
       const doDownload = () => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        const d = new Date(), p2 = (n) => String(n).padStart(2, '0');
-        a.download = 'tubepilot-' + (getVideoId() || 'shot') + '-' +
-          d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' +
-          p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.png';
-        document.body.appendChild(a); a.click();
-        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-        setStatus(T('shot_saved'));
+        tpDownloadPng(canvas.toDataURL('image/png'), fileName, (ok) => {
+          if (ok) { setStatus(T('shot_saved')); return; }
+          // background 실패 시 기존 앵커 방식 폴백
+          if (downloadViaAnchor(blob, fileName)) setStatus(T('shot_saved'));
+          else setStatus(T('shot_fail'));
+        });
       };
       if (mode === 'download' || !canCopy) { doDownload(); return; }
       navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(
