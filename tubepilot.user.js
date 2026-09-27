@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TubePilot
 // @namespace    https://github.com/sapgun/tubepilot
-// @version      1.1.0
+// @version      1.1.1
 // @description  PC 유튜브용 ReVanced 스타일 팩: 영상 광고 자동 스킵, SponsorBlock 구간 마킹+스킵, 영상 줌/패닝, 태그 기반 다시보기 라이브러리
 // @author       sapgun
 // @match        https://www.youtube.com/*
@@ -735,7 +735,29 @@
     handleSponsorSkip();
   }
 
-  buildPanel();
-  setInterval(tick, 300);
-  tick();
+  /* ================= 초기화 ================= */
+  let inited = false;
+  function init() {
+    if (inited) return;
+    inited = true;
+    console.log('[TubePilot] loaded v' + '1.1.1');
+    try {
+      buildPanel();
+    } catch (e) {
+      console.error('[TubePilot] panel build failed:', e);
+    }
+    setInterval(() => {
+      try { tick(); } catch (e) { console.error('[TubePilot] tick error:', e); }
+    }, 300);
+    try { tick(); } catch (e) { console.error('[TubePilot] tick error:', e); }
+  }
+  if (document.body) {
+    init();
+  } else if (document.readyState !== 'loading') {
+    init();
+  } else {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+    // 안전망: DOMContentLoaded가 안 오면 3초 후 강제 시도
+    setTimeout(init, 3000);
+  }
 })();
