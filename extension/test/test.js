@@ -27,7 +27,7 @@ window.chrome = {
   storage: { local: {
     get: (keys) => Promise.resolve(
       Object.fromEntries((Array.isArray(keys) ? keys : [keys]).map(k => [k, store[k]]))),
-    set: (obj) => { Object.assign(store, obj); return Promise.resolve(); },
+    set: (obj, cb) => { Object.assign(store, obj); if (typeof cb === 'function') cb(); return Promise.resolve(); },
   } },
   runtime: { getManifest: () => ({ version: '1.3.0' }) },
 };
@@ -180,6 +180,64 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   await sleep(100);
   ok('corner 복귀: body로 돌아옴', panel.parentElement === document.body &&
     !panel.classList.contains('ytpc-inline'));
+
+  // --- 백업/복원 ---
+  const libBtn = [...panel.querySelectorAll('button')].find(b => b.textContent === '목록');
+  libBtn.click();
+  await sleep(100);
+  const expBtn = document.querySelector('#ytpc-lib-export');
+  const impBtn = document.querySelector('#ytpc-lib-import');
+  const libOverlay = document.querySelector('#ytpc-lib-overlay');
+  const fileInput = libOverlay && libOverlay.querySelector('input[type=file]');
+  ok('백업/복원 버튼 + 파일 입력 존재', !!expBtn && !!impBtn && !!fileInput);
+
+  // 내보내기
+  let clickedDl = null;
+  window.HTMLAnchorElement.prototype.click = function() {
+    clickedDl = { download: this.download, href: this.getAttribute('href') };
+  };
+  window.URL.createObjectURL = () => 'blob:mock';
+  window.URL.revokeObjectURL = () => {};
+  let exportedJSON = '';
+  const OrigBlob = window.Blob;
+  window.Blob = function(parts) { exportedJSON = parts.join(''); return new OrigBlob(parts, { type: 'application/json' }); };
+  window.Blob.prototype = OrigBlob.prototype;
+  expBtn.click();
+  await sleep(50);
+  ok('백업 다운로드 파일명', !!clickedDl && clickedDl.download.startsWith('tubepilot-backup-') &&
+    clickedDl.download.endsWith('.json'), clickedDl && clickedDl.download);
+  const ed = JSON.parse(exportedJSON);
+  ok('백업 JSON 구조 (app/cfg/library)', ed.app === 'TubePilot' && !!ed.cfg && !!ed.library, ed.app);
+  window.Blob = OrigBlob;
+
+  // 가져오기
+  window.confirm = () => true;
+  const backupData = {
+    app: 'TubePilot', format: 1, exportedAt: '2026-09-27T00:00:00.000Z',
+    cfg: Object.assign({}, ed.cfg, { opacity: 80 }),
+    library: { vid123: { title: '테스트 영상', channel: '테스트 채널', tags: ['백업'], memo: '메모', savedAt: 123 } },
+  };
+  const bf = new window.File([JSON.stringify(backupData)], 'backup.json', { type: 'application/json' });
+  Object.defineProperty(fileInput, 'files', { value: [bf], configurable: true });
+  fileInput.dispatchEvent(new window.Event('change', { bubbles: true }));
+  await sleep(300);
+  ok('복원: 설정 저장됨', store.tp_cfg && store.tp_cfg.opacity === 80,
+    JSON.stringify(store.tp_cfg && store.tp_cfg.opacity));
+  ok('복원: 라이브러리 저장됨',
+    store.tp_library && store.tp_library.videos && store.tp_library.videos.vid123 &&
+    store.tp_library.videos.vid123.title === '테스트 영상');
+  ok('복원: 패널 UI에 반영됨 (투명도 80)', document.querySelector('#ytpc-opacity').value === '80',
+    document.querySelector('#ytpc-opacity').value);
+  ok('복원: 라이브러리 목록에 표시',
+    document.querySelector('#ytpc-lib-list').textContent.includes('테스트 영상'));
+
+  // 잘못된 파일 거부
+  const badFile = new window.File(['not json'], 'bad.json', { type: 'application/json' });
+  Object.defineProperty(fileInput, 'files', { value: [badFile], configurable: true });
+  fileInput.dispatchEvent(new window.Event('change', { bubbles: true }));
+  await sleep(200);
+  ok('복원: 잘못된 파일 거부됨 (기존 데이터 유지)',
+    store.tp_library.videos.vid123 && store.tp_library.videos.vid123.title === '테스트 영상');
 
   // --- 결과 ---
   let fail = 0;

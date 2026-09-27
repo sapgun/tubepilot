@@ -538,6 +538,48 @@
     chrome.storage.local.set({ tp_library: { videos: library } })
       .catch(() => setStatus('저장 공간 부족'));
   }
+  /* ---------- 백업: JSON 내보내기/가져오기 ---------- */
+  function exportBackup() {
+    const data = {
+      app: 'TubePilot', format: 1,
+      exportedAt: new Date().toISOString(),
+      cfg: cfg, library: library
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    const d = new Date(), p2 = (n) => String(n).padStart(2, '0');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'tubepilot-backup-' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) +
+                 '-' + p2(d.getHours()) + p2(d.getMinutes()) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    setStatus('백업 파일 저장됨');
+  }
+  function importBackup(file) {
+    const r = new FileReader();
+    r.onload = () => {
+      let data = null;
+      try { data = JSON.parse(r.result); } catch (e) {}
+      if (!data || data.app !== 'TubePilot' || !data.library || typeof data.library !== 'object') {
+        setStatus('복원 실패: TubePilot 백업 파일이 아님');
+        return;
+      }
+      const n = Object.keys(data.library).length;
+      if (!confirm('TubePilot 백업을 복원할까요?\n- 저장된 영상 ' + n + '개\n현재 설정과 라이브러리가 백업 내용으로 교체됩니다.')) return;
+      const newCfg = Object.assign({}, DEFAULTS, data.cfg || {});
+      chrome.storage.local.set({ tp_cfg: newCfg }, () => {
+        cfg = newCfg;
+        libWrite(data.library);
+        const p = document.getElementById('ytpc-panel');
+        if (p) p.remove();
+        try { buildPanel(); } catch (e) {}
+        renderLibTags(); renderLibList();
+        setStatus('백업 복원됨 (영상 ' + n + '개)');
+      });
+    };
+    r.readAsText(file);
+  }
   function isSaved(vid) { return !!libLoad()[vid]; }
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c =>
@@ -668,6 +710,8 @@
       '<div id="ytpc-lib">' +
         '<div class="ytpc-lib-head">' +
           '<input type="text" id="ytpc-lib-q" placeholder="제목 · 채널 · 태그 · 메모 검색…">' +
+          '<button id="ytpc-lib-export" title="설정+라이브러리를 JSON 파일로 저장">백업</button>' +
+          '<button id="ytpc-lib-import" title="JSON 백업 파일에서 복원">복원</button>' +
           '<button id="ytpc-lib-close">닫기</button>' +
         '</div>' +
         '<div class="ytpc-tagbar" id="ytpc-lib-tags"></div>' +
@@ -677,6 +721,16 @@
     const q = libOverlay.querySelector('#ytpc-lib-q');
     q.addEventListener('input', () => { libFilter.q = q.value.trim().toLowerCase(); renderLibList(); });
     libOverlay.querySelector('#ytpc-lib-close').addEventListener('click', closeLibrary);
+    libOverlay.querySelector('#ytpc-lib-export').addEventListener('click', exportBackup);
+    const impBtn = libOverlay.querySelector('#ytpc-lib-import');
+    const impFile = document.createElement('input');
+    impFile.type = 'file'; impFile.accept = 'application/json,.json'; impFile.style.display = 'none';
+    impFile.addEventListener('change', () => {
+      if (impFile.files[0]) importBackup(impFile.files[0]);
+      impFile.value = '';
+    });
+    impBtn.addEventListener('click', () => impFile.click());
+    libOverlay.appendChild(impFile);
     libOverlay.addEventListener('click', e => { if (e.target === libOverlay) closeLibrary(); });
     document.addEventListener('keydown', libEsc);
     renderLibTags(); renderLibList();
