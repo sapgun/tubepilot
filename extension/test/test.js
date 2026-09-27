@@ -239,6 +239,23 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   ok('복원: 잘못된 파일 거부됨 (기존 데이터 유지)',
     store.tp_library.videos.vid123 && store.tp_library.videos.vid123.title === '테스트 영상');
 
+  // --- 댓글 숨기기 (몰입 모드) ---
+  const cmtRow = [...panel.querySelectorAll('label.ytpc-row')].find(l => l.textContent.includes('댓글 숨기기'));
+  ok('댓글 숨기기 체크박스 존재', !!cmtRow);
+  const cmtBox = cmtRow.querySelector('input');
+  ok('댓글 숨기기 기본값 off',
+    cmtBox.checked === false && !document.documentElement.classList.contains('ytpc-nocomments'));
+  cmtBox.checked = true;
+  cmtBox.dispatchEvent(new window.Event('change', { bubbles: true }));
+  await sleep(50);
+  ok('댓글 숨기기 on: 클래스 토글', document.documentElement.classList.contains('ytpc-nocomments'));
+  ok('댓글 숨기기 스타일 주입됨', !!document.getElementById('ytpc-nocomments-style'));
+  ok('댓글 숨기기 저장됨', store.tp_cfg.hideComments === true);
+  cmtBox.checked = false;
+  cmtBox.dispatchEvent(new window.Event('change', { bubbles: true }));
+  await sleep(50);
+  ok('댓글 숨기기 off: 클래스 제거', !document.documentElement.classList.contains('ytpc-nocomments'));
+
   // --- 결과 ---
   let fail = 0;
   for (const [s, n, x] of results) {

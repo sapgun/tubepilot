@@ -14,6 +14,7 @@
     panelMode: 'corner',  // corner(우측 하단) | player(플레이어 위) | below(플레이어 아래 고정)
     panelPos: null,       // {left, top} 수동 드래그 위치 (있으면 모드보다 우선)
     opacity: 100,         // 패널 투명도 (%)
+    hideComments: false,  // 댓글 숨기기 (몰입 모드)
     cats: {
       sponsor: true,
       intro: true,
@@ -289,6 +290,17 @@
     clearTimeout(skipToastTimer);
     skipToastTimer = setTimeout(() => t.classList.remove('ytpc-show'), 1600);
   }
+  function applyCommentVisibility() {
+    // CSS 클래스 토글 방식: 유튜브가 댓글 DOM을 다시 그려도 유지됨
+    let st = document.getElementById('ytpc-nocomments-style');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'ytpc-nocomments-style';
+      st.textContent = 'html.ytpc-nocomments #comments, html.ytpc-nocomments ytd-comments { display: none !important; }';
+      (document.head || document.documentElement).appendChild(st);
+    }
+    document.documentElement.classList.toggle('ytpc-nocomments', !!cfg.hideComments);
+  }
   function belowAnchor() {
     // 플레이어 바로 아래 = 영상 제목/설명 영역 앞
     return document.querySelector('ytd-watch-flexy #below') ||
@@ -420,6 +432,9 @@
     }
     body.appendChild(row('영상 광고 자동 스킵', 'adSkip'));
     body.appendChild(row('광고 중 음소거', 'adMute'));
+    const cmtRow = row('💬 댓글 숨기기 (몰입 모드)', 'hideComments');
+    cmtRow.querySelector('input').addEventListener('change', applyCommentVisibility);
+    body.appendChild(cmtRow);
     body.appendChild(row('스폰서 구간 자동 스킵', 'sbSkip'));
 
     const markRow = row('스폰서 구간 마킹 표시', 'sbMark');
@@ -529,6 +544,7 @@
     (document.body || document.documentElement).appendChild(panel);
     makeDraggable(panel, head);
     positionPanel();
+    applyCommentVisibility();
   }
 
   /* ================= 다시보기 라이브러리 ================= */
