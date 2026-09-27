@@ -1,0 +1,89 @@
+#ytpc-panel { position: fixed; right: 16px; bottom: 88px; z-index: 2147483647;
+  background: rgba(15,15,15,.95); color: #fff; border: 1px solid #3d3d3d;
+  border-radius: 12px; font: 12px/1.6 -apple-system, "Segoe UI", sans-serif;
+  width: 212px; box-shadow: 0 4px 24px rgba(0,0,0,.55); user-select: none; }
+#ytpc-panel .ytpc-head { padding: 8px 10px; font-weight: 700; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center; }
+#ytpc-panel .ytpc-body { padding: 2px 10px 10px; border-top: 1px solid #2a2a2a; }
+#ytpc-panel.ytpc-hidden .ytpc-body { display: none; }
+#ytpc-panel label.ytpc-row { display: flex; align-items: center; gap: 6px; margin: 5px 0; cursor: pointer; }
+#ytpc-panel .ytpc-cats { margin: 2px 0 0 20px; }
+#ytpc-panel .ytpc-cats label { display: flex; align-items: center; gap: 6px; margin: 3px 0; cursor: pointer; color: #ccc; }
+#ytpc-panel .ytpc-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+#ytpc-panel .ytpc-zoomrow { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+#ytpc-panel .ytpc-zoomrow button { background: #272727; color: #fff; border: 1px solid #4a4a4a;
+  border-radius: 8px; padding: 4px 0; flex: 1; cursor: pointer; font-size: 12px; }
+#ytpc-panel .ytpc-zoomrow button:hover { background: #3d3d3d; }
+#ytpc-panel .ytpc-zoomlbl { min-width: 44px; text-align: center; color: #aaa; font-size: 11px; }
+#ytpc-panel .ytpc-status { margin-top: 8px; color: #9a9a9a; font-size: 11px; min-height: 15px; }
+#ytpc-panel .ytpc-hint { color: #6f6f6f; font-size: 10px; margin-top: 4px; }
+.ytpc-marker { position: absolute; top: 0; height: 100%; pointer-events: none;
+  z-index: 40; opacity: .9; border-radius: 2px; }
+/* 다시보기 라이브러리 */
+#ytpc-lib-overlay { position: fixed; inset: 0; z-index: 2147483647; background: rgba(0,0,0,.72);
+  display: flex; align-items: center; justify-content: center; }
+#ytpc-lib { width: min(920px, 94vw); max-height: 88vh; background: #141414; color: #fff;
+  border: 1px solid #3d3d3d; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;
+  font: 12px/1.6 -apple-system, "Segoe UI", sans-serif; }
+#ytpc-lib .ytpc-lib-head { padding: 12px 16px; border-bottom: 1px solid #2a2a2a; display: flex; gap: 8px; align-items: center; }
+#ytpc-lib .ytpc-lib-head input { flex: 1; background: #222; border: 1px solid #4a4a4a; color: #fff;
+  border-radius: 8px; padding: 7px 10px; font-size: 13px; }
+#ytpc-lib .ytpc-lib-head button { background: #272727; color: #fff; border: 1px solid #4a4a4a;
+  border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+#ytpc-lib .ytpc-tagbar { padding: 8px 16px; border-bottom: 1px solid #2a2a2a; display: flex; flex-wrap: wrap; gap: 6px; max-height: 76px; overflow-y: auto; }
+#ytpc-lib .ytpc-tagchip { background: #222; border: 1px solid #4a4a4a; color: #ccc; border-radius: 999px;
+  padding: 3px 10px; font-size: 11px; cursor: pointer; }
+#ytpc-lib .ytpc-tagchip.on { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+#ytpc-lib .ytpc-lib-list { overflow-y: auto; padding: 12px 16px; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.ytpc-card { background: #1d1d1d; border: 1px solid #2e2e2e; border-radius: 10px; overflow: hidden; }
+.ytpc-card:hover { border-color: #555; }
+.ytpc-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: #000; cursor: pointer; }
+.ytpc-card .ytpc-card-body { padding: 8px 10px; }
+.ytpc-card .ytpc-card-title { font-size: 12px; font-weight: 600; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ytpc-card .ytpc-card-sub { font-size: 11px; color: #999; margin-top: 2px; }
+.ytpc-card .ytpc-card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.ytpc-card .ytpc-card-tags span { background: #2b3a55; color: #bcd3ff; border-radius: 999px;
+  padding: 1px 8px; font-size: 10px; }
+.ytpc-card .ytpc-card-notes { font-size: 11px; color: #aaa; margin-top: 4px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ytpc-card .ytpc-card-actions { display: flex; gap: 6px; margin-top: 8px; }
+.ytpc-card .ytpc-card-actions button { flex: 1; background: #2a2a2a; color: #ddd;
+  border: 1px solid #444; border-radius: 6px; font-size: 11px; padding: 4px 0; cursor: pointer; }
+#ytpc-lib .ytpc-empty { padding: 40px; text-align: center; color: #777; grid-column: 1/-1; }
+/* 저장 다이얼로그 */
+#ytpc-save-overlay { position: fixed; inset: 0; z-index: 2147483647; background: rgba(0,0,0,.6);
+  display: flex; align-items: center; justify-content: center; }
+#ytpc-save { width: min(440px, 92vw); background: #161616; border: 1px solid #3d3d3d;
+  border-radius: 14px; padding: 16px; color: #fff;
+  font: 12px/1.6 -apple-system, "Segoe UI", sans-serif; }
+#ytpc-save h3 { margin: 0 0 4px; font-size: 14px; }
+#ytpc-save .ytpc-save-title { font-size: 12px; color: #bbb; margin-bottom: 10px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#ytpc-save label { font-size: 11px; color: #999; display: block; margin: 8px 0 4px; }
+#ytpc-save input[type=text], #ytpc-save textarea { width: 100%; box-sizing: border-box;
+  background: #222; border: 1px solid #4a4a4a; color: #fff; border-radius: 8px;
+  padding: 7px 9px; font-size: 12px; }
+#ytpc-save textarea { min-height: 64px; resize: vertical; }
+#ytpc-save .ytpc-autotags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+#ytpc-save .ytpc-autotags span { background: #112233; border: 1px solid #2b4a77; color: #9fc1ff;
+  border-radius: 999px; padding: 2px 10px; font-size: 11px; cursor: pointer; }
+#ytpc-save .ytpc-save-btns { display: flex; gap: 8px; margin-top: 12px; }
+#ytpc-save .ytpc-save-btns button { flex: 1; padding: 8px 0; border-radius: 8px; cursor: pointer; font-size: 13px; }
+#ytpc-save .ytpc-btn-ok { background: #3b82f6; border: none; color: #fff; }
+#ytpc-save .ytpc-btn-cancel { background: #2a2a2a; border: 1px solid #444; color: #ddd; }
+#ytpc-save .ytpc-btn-del { background: transparent; border: 1px solid #7f2d2d; color: #ff9a9a; }
+/* 저장됨 리콜 배너 */
+#ytpc-recall { position: absolute; top: 10px; left: 10px; z-index: 60; max-width: 62%;
+  background: rgba(10,10,10,.9); border: 1px solid #3b82f6; border-radius: 10px;
+  padding: 8px 10px; color: #fff; font-size: 12px;
+  font-family: -apple-system, "Segoe UI", sans-serif; line-height: 1.5; }
+#ytpc-recall .ytpc-recall-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+#ytpc-recall .ytpc-recall-tags span { background: #1d3a6e; color: #cfe2ff; border-radius: 999px;
+  padding: 1px 9px; font-size: 11px; }
+#ytpc-recall .ytpc-recall-notes { color: #bbb; font-size: 11px; margin-bottom: 6px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#ytpc-recall .ytpc-recall-btns { display: flex; gap: 6px; }
+#ytpc-recall .ytpc-recall-btns button { background: #272727; color: #ddd; border: 1px solid #4a4a4a;
+  border-radius: 6px; font-size: 11px; padding: 3px 10px; cursor: pointer; }

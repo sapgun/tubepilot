@@ -1,6 +1,23 @@
 # TubePilot
 
-PC 유튜브용 ReVanced 스타일 파워팩. Tampermonkey 유저스크립트 하나로 동작한다.
+PC 유튜브용 ReVanced 스타일 파워팩. 브라우저 확장(Manifest V3)으로 동작한다.
+
+## 설치
+
+### A. 브라우저 확장 (권장)
+
+1. 이 레포를 클론하거나 `extension/` 폴더를 다운로드
+2. `chrome://extensions` 접속 → 우측 상단 **개발자 모드** 켜기
+3. **압축해제된 확장 프로그램을 로드합니다** 클릭 → `extension/` 폴더 선택
+4. youtube.com 접속 → 우측 하단에 🎬 패널이 뜨면 완료
+
+> 툴바의 TubePilot 아이콘으로 전체 사용 on/off 가능. 세부 설정은 유튜브 페이지의 🎬 패널에서.
+
+### B. 유저스크립트 (대안)
+
+Tampermonkey / Violentmonkey 사용자라면 `tubepilot.user.js`를 그대로 쓸 수 있다.
+매니저 설치 후 파일을 브라우저로 열면 설치 확인창이 뜬다.
+(`@updateURL`이 있어 새 버전 푸시 시 자동 업데이트 확인)
 
 ## 기능
 
@@ -13,24 +30,12 @@ PC 유튜브용 ReVanced 스타일 파워팩. Tampermonkey 유저스크립트 �
 
 우측 하단 🎬 패널에서 모든 기능을 켜고 끌 수 있다. 설정과 라이브러리는 브라우저에 저장된다.
 
-## 설치
-
-1. 유저스크립트 매니저 설치 (둘 중 편한 걸로): [Tampermonkey](https://www.tampermonkey.net/) 또는 [Violentmonkey](https://violentmonkey.github.io/) (오픈소스)
-2. 아래 방법 중 하나:
-   - **파일 설치**: `tubepilot.user.js`를 브라우저로 열기 → 매니저가 설치 확인창을 띄움
-   - **URL 설치** (레포를 public으로 전환한 경우): 매니저 대시보드에서 `https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js` 로 설치
-3. youtube.com 접속 → 우측 하단에 🎬 패널이 뜨면 완료
-
-`@updateURL`이 설정되어 있어 새 버전이 푸시되면 Tampermonkey가 자동으로 업데이트를 확인한다.
-
 ## 개발
 
-단일 파일 구조라 수정 후 버전만 올리면 된다.
-
-1. `tubepilot.user.js` 수정
-2. 헤더의 `@version` 올리기 (semver)
-3. `CHANGELOG.md`에 변경점 기록
-4. 커밋 & 푸시 → Tampermonkey 자동 업데이트가 나머지 처리
+- 확장: `extension/content.js` 수정 → `manifest.json`의 `version` 올리기
+- 유저스크립트: `tubepilot.user.js` 수정 → 헤더의 `@version` 올리기
+- `CHANGELOG.md`에 변경점 기록 후 커밋 & 푸시
+- 확장 업데이트는 `chrome://extensions`에서 새로고침 버튼으로 반영, 유저스크립트는 `@updateURL`로 자동 확인
 
 ## 참고
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0 — 2026-09-27
+
+### 추가
+- 브라우저 확장(Manifest V3) 출시: `extension/` 폴더
+  - 유저스크립트와 기능 동일 (광고 스킵 · SponsorBlock · 줌 · 다시보기 라이브러리)
+  - 저장소는 `chrome.storage.local`, SponsorBlock 조회는 `fetch` + `host_permissions`
+  - 확장 팝업: 전체 사용 on/off, 유튜브/GitHub 바로가기
+- 설치: `chrome://extensions` → 개발자 모드 → 압축해제된 확장 로드
+
 ## 1.1.2 — 2026-09-27
 
 ### 수정
