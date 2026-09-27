@@ -1,0 +1,26 @@
+{
+  "name": "tubepilot-landing",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "check": "node scripts/check.mjs",
+    "format": "prettier --write src scripts *.html *.js *.json *.md"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.2.0",
+    "@fontsource-variable/noto-sans-kr": "^5.2.0",
+    "lucide-react": "^0.468.0",
+    "motion": "^13.4.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.29.9",
+    "prettier": "^3.9.9",
+    "vite": "^7.1.0"
+  }
+}

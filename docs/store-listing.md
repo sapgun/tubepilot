@@ -23,7 +23,7 @@ PC 유튜브 파워팩: 영상 광고 자동 스킵, SponsorBlock 구간 마킹�
 🔒 프라이버시
 • 설정과 라이브러리는 브라우저 로컬에만 저장됩니다
 • 외부 전송은 SponsorBlock 구간 조회를 위한 영상 ID뿐입니다
-• 개인정보처리방침: https://sapgun.github.io/tubepilot/privacy.html (Pages 게시 후 주소 확정)
+• 개인정보처리방침: https://tubepilot-rho.vercel.app/privacy.html
 
 ※ SponsorBlock 구간 데이터는 커뮤니티 기여 기반이라 모든 영상에 있지는 않습니다.
 ```
@@ -55,7 +55,7 @@ PC 유튜브 파워팩: 영상 광고 자동 스킵, SponsorBlock 구간 마킹�
 - 수집 데이터: 시청 중인 YouTube 영상 ID → `sponsor.ajay.app` 전송 (스폰서 구간 조회 목적)
 - 그 외 개인 데이터 수집·전송 없음
 - 설정/라이브러리는 `chrome.storage.local`에만 저장
-- 개인정보처리방침 URL: `docs/privacy.html`을 GitHub Pages로 게시 후 입력
+- 개인정보처리방침 URL: `https://tubepilot-rho.vercel.app/privacy.html` (Vercel 배포 정상화 후 확인)
 
 ## 7. 등록 절차
 1. [Chrome Web Store 개발자 대시보드](https://chrome.google.com/webstore/devconsole) 가입 ($5 일회성)
@@ -64,5 +64,5 @@ PC 유튜브 파워팩: 영상 광고 자동 스킵, SponsorBlock 구간 마킹�
 4. Privacy 탭 작성 (위 6번)
 5. 제출 → 심사 대기 (며칠~몇 주)
 
-> 참고: GitHub Pages는 공개 레포(또는 유료 플랜)에서만 동작합니다.
+> 웹사이트 소스 및 배포 설정: `landing/`, `vercel.json`, `docs/website.md`.
 > 현재 레포가 비공개라면 개인정보처리방침 페이지를 별도 공개 위치에 올려야 합니다.
