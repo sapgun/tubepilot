@@ -10,6 +10,7 @@ const html = `<!DOCTYPE html><html><head><title>Test Video - YouTube</title></he
   <div class="html5-video-container"><video class="html5-main-video"></video></div>
   <div class="ytp-chrome-bottom"><div class="ytp-progress-bar-container"><div class="ytp-progress-bar"></div></div></div>
 </div>
+<div id="below"></div>
 </body></html>`;
 
 const dom = new JSDOM(html, {
@@ -98,6 +99,11 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   ok('자동 스킵: 구간 끝으로 이동', Math.abs(video.currentTime - 20.05) < 0.01,
     'currentTime=' + video.currentTime);
 
+  // --- 스킵 토스트 ---
+  const toast = document.querySelector('#movie_player .ytpc-skiptoast');
+  ok('스킵 토스트 표시됨', !!toast && toast.classList.contains('ytpc-show') &&
+    toast.textContent.includes('스폰서'), toast && toast.textContent);
+
   // --- 마커 클릭 이동 ---
   const mSpon2 = document.querySelectorAll('.ytpc-marker')[1];
   video.currentTime = 50;
@@ -139,6 +145,41 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   await sleep(100);
   ok('플레이어 하단 도킹: left=112px', panel.style.left === '112px', panel.style.left);
   ok('플레이어 하단 도킹: top=436px', panel.style.top === '436px', panel.style.top);
+
+  // --- 투명도 슬라이더 ---
+  const opRange = document.querySelector('#ytpc-opacity');
+  ok('투명도 슬라이더 존재 (기본 100)', !!opRange && opRange.value === '100',
+    opRange && opRange.value);
+  opRange.value = '50';
+  opRange.dispatchEvent(new window.Event('input', { bubbles: true }));
+  ok('투명도 조절: 50% → opacity 0.5', panel.style.opacity === '0.5', panel.style.opacity);
+  opRange.dispatchEvent(new window.Event('change', { bubbles: true }));
+  ok('투명도 저장됨', store.tp_cfg && store.tp_cfg.opacity === 50,
+    JSON.stringify(store.tp_cfg && store.tp_cfg.opacity));
+
+  // --- 플레이어 아래(인라인) 모드 ---
+  sel.value = 'below';
+  sel.dispatchEvent(new window.Event('change', { bubbles: true }));
+  await sleep(150);
+  const belowEl = document.querySelector('#below');
+  ok('below 모드: ytpc-inline 클래스', panel.classList.contains('ytpc-inline'));
+  ok('below 모드: #below 앞으로 삽입', panel.nextElementSibling === belowEl);
+  // 인라인 모드에서 드래그는 동작하지 않아야 함
+  const beforeLeft = panel.style.left, beforeTop = panel.style.top;
+  head.dispatchEvent(new window.MouseEvent('mousedown',
+    { bubbles: true, clientX: 750, clientY: 510, button: 0 }));
+  document.dispatchEvent(new window.MouseEvent('mousemove',
+    { bubbles: true, clientX: 550, clientY: 400 }));
+  document.dispatchEvent(new window.MouseEvent('mouseup', { bubbles: true }));
+  ok('below 모드: 드래그로 위치 안 바뀜',
+    panel.style.left === beforeLeft && panel.style.top === beforeTop,
+    panel.style.left + ',' + panel.style.top);
+  // 모드 복귀
+  sel.value = 'corner';
+  sel.dispatchEvent(new window.Event('change', { bubbles: true }));
+  await sleep(100);
+  ok('corner 복귀: body로 돌아옴', panel.parentElement === document.body &&
+    !panel.classList.contains('ytpc-inline'));
 
   // --- 결과 ---
   let fail = 0;

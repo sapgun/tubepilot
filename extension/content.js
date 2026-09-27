@@ -11,8 +11,9 @@
     adMute: true,   // 광고 중 음소거
     sbSkip: true,   // SponsorBlock 구간 자동 스킵
     sbMark: true,   // SponsorBlock 구간 마킹 표시
-    panelMode: 'corner',  // corner(우측 하단) | player(플레이어 하단)
+    panelMode: 'corner',  // corner(우측 하단) | player(플레이어 위) | below(플레이어 아래 고정)
     panelPos: null,       // {left, top} 수동 드래그 위치 (있으면 모드보다 우선)
+    opacity: 100,         // 패널 투명도 (%)
     cats: {
       sponsor: true,
       intro: true,
@@ -186,6 +187,7 @@
         v.currentTime = Math.min(s.end + 0.05, v.duration - 0.05);
         const meta = CAT_META[s.cat] || {};
         setStatus('스킵: ' + (meta.label || s.cat));
+        showSkipToast(meta.label || s.cat);
         break;
       }
     }
@@ -272,6 +274,27 @@
   }, true);
 
   /* ================= 패널 위치/드래그 ================= */
+  let skipToastTimer = null;
+  function showSkipToast(label) {
+    const pl = getPlayer();
+    if (!pl) return;
+    let t = pl.querySelector('.ytpc-skiptoast');
+    if (!t) {
+      t = document.createElement('div');
+      t.className = 'ytpc-skiptoast';
+      pl.appendChild(t);
+    }
+    t.textContent = '\u23ED 스킵: ' + label;
+    t.classList.add('ytpc-show');
+    clearTimeout(skipToastTimer);
+    skipToastTimer = setTimeout(() => t.classList.remove('ytpc-show'), 1600);
+  }
+  function belowAnchor() {
+    // 플레이어 바로 아래 = 영상 제목/설명 영역 앞
+    return document.querySelector('ytd-watch-flexy #below') ||
+           document.querySelector('#below') ||
+           document.querySelector('ytd-watch-metadata');
+  }
   function playerRect() {
     const pl = document.getElementById('movie_player');
     if (!pl) return null;
@@ -281,6 +304,23 @@
   function positionPanel() {
     const panel = document.getElementById('ytpc-panel');
     if (!panel) return;
+    // 플레이어 아래 고정 모드: 페이지 흐름에 자연스럽게 삽입
+    if (cfg.panelMode === 'below' && !cfg.panelPos) {
+      const anchor = belowAnchor();
+      if (anchor) {
+        if (panel.nextElementSibling !== anchor || !panel.classList.contains('ytpc-inline')) {
+          anchor.parentNode.insertBefore(panel, anchor);
+        }
+        panel.classList.add('ytpc-inline');
+        return;
+      }
+      // 앵커가 없으면(시청 페이지 아님) 우측 하단으로 폴백
+    }
+    panel.classList.remove('ytpc-inline');
+    if (panel.parentElement !== document.body) {
+      (document.body || document.documentElement).appendChild(panel);
+    }
+    panel.style.position = '';
     if (cfg.panelPos) {
       // 수동 드래그 위치가 있으면 최우선
       panel.style.left = cfg.panelPos.left;
@@ -310,16 +350,21 @@
     let drag = null;
     head.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
-      const r = panel.getBoundingClientRect();
-      panel.style.left = r.left + 'px';
-      panel.style.top = r.top + 'px';
-      panel.style.right = 'auto';
-      panel.style.bottom = 'auto';
-      drag = { x0: e.clientX, y0: e.clientY, l: r.left, t: r.top, moved: false };
+      const inlineMode = cfg.panelMode === 'below'; // 인라인 모드는 드래그 대신 클릭만
+      let l = 0, t = 0;
+      if (!inlineMode) {
+        const r = panel.getBoundingClientRect();
+        panel.style.left = r.left + 'px';
+        panel.style.top = r.top + 'px';
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        l = r.left; t = r.top;
+      }
+      drag = { x0: e.clientX, y0: e.clientY, l, t, moved: false, inline: inlineMode };
       e.preventDefault();
     });
     document.addEventListener('mousemove', (e) => {
-      if (!drag) return;
+      if (!drag || drag.inline) return;
       const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
       if (!drag.moved && Math.hypot(dx, dy) < 4) return; // 클릭과 구분
       drag.moved = true;
@@ -420,7 +465,7 @@
     posRow.appendChild(document.createTextNode('\uD83D\uDCCC 패널 위치'));
     const posSel = document.createElement('select');
     posSel.id = 'ytpc-posmode';
-    [['corner', '우측 하단'], ['player', '플레이어 하단']].forEach(([val, label]) => {
+    [['corner', '우측 하단'], ['player', '플레이어 위'], ['below', '플레이어 아래']].forEach(([val, label]) => {
       const o = document.createElement('option');
       o.value = val; o.textContent = label;
       posSel.appendChild(o);
@@ -435,6 +480,30 @@
     });
     posRow.appendChild(posSel);
     body.appendChild(posRow);
+
+    const opRow = document.createElement('label');
+    opRow.className = 'ytpc-row';
+    opRow.appendChild(document.createTextNode('\uD83C\uDF17 투명도'));
+    const opRange = document.createElement('input');
+    opRange.type = 'range'; opRange.min = '30'; opRange.max = '100';
+    opRange.id = 'ytpc-opacity';
+    opRange.value = (cfg.opacity != null ? cfg.opacity : 100);
+    const opVal = document.createElement('span');
+    opVal.className = 'ytpc-opval';
+    const applyOpacity = () => {
+      const v = parseInt(opRange.value, 10) || 100;
+      panel.style.opacity = (v / 100).toFixed(2);
+      opVal.textContent = v + '%';
+    };
+    opRange.addEventListener('input', applyOpacity);
+    opRange.addEventListener('change', () => {
+      cfg.opacity = parseInt(opRange.value, 10) || 100;
+      saveCfg();
+    });
+    opRow.appendChild(opRange);
+    opRow.appendChild(opVal);
+    body.appendChild(opRow);
+    applyOpacity();
 
     const libRow = document.createElement('div');
     libRow.className = 'ytpc-zoomrow';
@@ -757,8 +826,13 @@
     }
     handleAds();
     handleSponsorSkip();
-    // 플레이어 하단 모드: 플레이어 크기/위치 변화를 따라감 (수동 드래그 위치가 없을 때만)
-    if (cfg.panelMode === 'player' && !cfg.panelPos) positionPanel();
+    // 패널이 유튜브 리렌더로 사라졌으면 복구
+    if (!document.getElementById('ytpc-panel')) {
+      try { buildPanel(); } catch (e) {}
+    } else if ((cfg.panelMode === 'player' || cfg.panelMode === 'below') && !cfg.panelPos) {
+      // 플레이어 위/아래 모드: 플레이어 크기·위치 변화를 따라감 (수동 드래그 위치가 없을 때만)
+      positionPanel();
+    }
   }
 
   /* ================= 초기화 ================= */
