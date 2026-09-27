@@ -15,10 +15,10 @@ PC 유튜브용 ReVanced 스타일 파워팩. Tampermonkey 유저스크립트 �
 
 ## 설치
 
-1. 브라우저에 [Tampermonkey](https://www.tampermonkey.net/) 확장 설치
+1. 유저스크립트 매니저 설치 (둘 중 편한 걸로): [Tampermonkey](https://www.tampermonkey.net/) 또는 [Violentmonkey](https://violentmonkey.github.io/) (오픈소스)
 2. 아래 방법 중 하나:
-   - **파일 설치**: `tubepilot.user.js`를 브라우저로 열기 → Tampermonkey가 설치 확인창을 띄움
-   - **URL 설치** (레포를 public으로 전환한 경우): Tampermonkey → 새 스크립트 → `https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js` 에서 설치
+   - **파일 설치**: `tubepilot.user.js`를 브라우저로 열기 → 매니저가 설치 확인창을 띄움
+   - **URL 설치** (레포를 public으로 전환한 경우): 매니저 대시보드에서 `https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js` 로 설치
 3. youtube.com 접속 → 우측 하단에 🎬 패널이 뜨면 완료
 
 `@updateURL`이 설정되어 있어 새 버전이 푸시되면 Tampermonkey가 자동으로 업데이트를 확인한다.
