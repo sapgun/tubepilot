@@ -3285,3 +3285,30 @@ html[lang="ja"] .feature-card h3 {
       border-color 0.25s;
   }
 }
+
+/* Extension 1.10.1: a panel below the image, with explicit size controls. */
+.segment-panel { width: min(100%, 420px); margin: 14px 12px 0; border: 1px solid #344039; background: #141c17; border-radius: 14px; overflow: hidden; max-width: calc(100% - 24px); }
+.segment-panel.is-wide { width: calc(100% - 24px); }
+.segment-panel.is-collapsed { width: 230px; }
+.segment-panel-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.segment-panel-version { font-size: 10px; color: #96ac9d; }
+.segment-panel-actions { display: flex; margin-left: auto; }
+#demo-panel-content { padding: 0 12px 12px; }
+#demo-panel-content[hidden] { display: none; }
+.segment-panel-summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid #344039; padding-top: 12px; font-size: 12px; }
+.segment-panel-summary span, .segment-panel-source { color: #96ac9d; font-size: 10px; }
+.segment-panel-source { margin: 7px 0 12px; line-height: 1.6; }
+.segment-panel-row { display: flex; align-items: center; gap: 10px; padding: 8px; margin: 5px 0; border-left: 3px solid var(--segment-color); background: #202b24; border-radius: 6px; font-size: 11px; }
+.segment-panel-row.current { background: #354535; }
+.segment-panel-row code { color: #b5c4b8; font-size: 10px; white-space: nowrap; }
+.segment-panel-row button { margin-left: auto; background: #b5ee72; color: #15200f; border: 0; border-radius: 5px; padding: 6px 9px; cursor: pointer; font-size: 11px; flex-shrink: 0; }
+.segment-panel-auto { display: flex; gap: 8px; align-items: center; padding: 9px 0; font-size: 11px; }
+.segment-panel-auto input { accent-color: #b5ee72; }
+.segment-panel-settings { border-top: 1px solid #344039; padding-top: 8px; font-size: 11px; }
+.segment-panel-settings summary { cursor: pointer; color: #bed0c2; }
+.segment-panel .cockpit { flex-wrap: wrap; height: auto; padding: 10px 0 0; gap: 10px; }
+.segment-panel .cockpit-brand { display: none; }
+.segment-panel .cockpit-tools { flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
+.panel-demo-hint { margin: 9px 12px 15px; color: #96ac9d; font-size: 10px; }
+.install-update { max-width: 360px; font-size: 12px !important; line-height: 1.7; color: #bed0c2; }
+@media (max-width: 480px) { .segment-panel-summary { flex-wrap: wrap; } .segment-panel-row { gap: 7px; flex-wrap: wrap; } .segment-panel-row span { font-size: 10px; } }

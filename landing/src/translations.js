@@ -1,5 +1,20 @@
 // Source language: Korean. Columns: English, Japanese, Portuguese, Spanish.
 export const messages = {
+"−로 접어도 구간 스킵은 계속돼요.": ["Segment skipping continues with the panel collapsed.", "閉じても区間スキップは続きます。", "Os pulos continuam com o painel fechado.", "Los saltos continúan con el panel cerrado."],
+"패널 작게 보기": ["Compact panel", "パネルを小さく", "Painel compacto", "Panel compacto"],
+"패널 넓게 보기": ["Wide panel", "パネルを広く", "Painel amplo", "Panel amplio"],
+"패널 펼치기": ["Expand panel", "パネルを開く", "Abrir painel", "Abrir panel"],
+"패널 접기": ["Collapse panel", "パネルを閉じる", "Fechar painel", "Cerrar panel"],
+"영상 구간": ["Video segments", "動画の区間", "Trechos do vídeo", "Segmentos del vídeo"],
+"예시 구간 데이터": ["Sample segment data", "区間のサンプル", "Dados de exemplo", "Datos de ejemplo"],
+"등록된 구간만 표시해요. 미등록 광고를 자동 분석하지 않아요.": ["Only reported segments are shown. Unreported ads are not analyzed.", "投稿された区間のみ表示。未登録広告の自動解析は行いません。", "Exibe apenas trechos reportados. Não analisa anúncios não reportados.", "Solo se muestran segmentos reportados. No se analizan anuncios sin reportar."],
+"구간 끝으로 이동했어요": ["Jumped to the segment end", "区間の終わりへ移動しました", "Pulou para o fim do trecho", "Saltaste al final del segmento"],
+"건너뛰기": ["Skip", "スキップ", "Pular", "Saltar"],
+"데모 구간 자동 스킵": ["Auto-skip demo segments", "デモ区間の自動スキップ", "Pular trechos da demo automaticamente", "Saltar segmentos de demo automáticamente"],
+"재생 도구": ["Playback tools", "再生ツール", "Ferramentas de reprodução", "Herramientas de reproducción"],
+"＋로 패널을 펼쳐보세요. 영상은 가리지 않아요.": ["Open the panel with ＋. Your video stays clear.", "＋でパネルを開きます。動画を隠しません。", "Abra o painel com ＋. O vídeo fica livre.", "Abre el panel con ＋. El vídeo queda libre."],
+"업데이트 전 백업하고, 기존 폴더를 교체한 뒤 확장과 YouTube를 새로고침하세요.": ["Back up first, replace the installed folder, then reload the extension and YouTube.", "先にバックアップし、既存フォルダーを更新して拡張とYouTubeを再読み込みします。", "Faça backup, atualize a pasta instalada e recarregue a extensão e o YouTube.", "Haz una copia, actualiza la carpeta instalada y recarga la extensión y YouTube."],
+
   "캡처 미리보기": [
     "Capture preview",
     "キャプチャのプレビュー",
@@ -229,12 +244,7 @@ export const messages = {
     "Imagem de exemplo",
     "Imagen de ejemplo",
   ],
-  "스폰서 구간 00:32를 건너뛰었어요": [
-    "Skipped 00:32 of sponsorship",
-    "スポンサー区間を32秒スキップしました",
-    "32 segundos de patrocínio pulados",
-    "32 segundos de patrocinio saltados",
-  ],
+  "스폰서 구간 끝으로 이동했어요": ["Jumped to the end of the sponsor segment", "スポンサー区間の終わりへ移動しました", "Pulou para o fim do trecho patrocinado", "Saltaste al final del patrocinio"],
   "스폰서 구간 스킵": [
     "Skip sponsor segment",
     "スポンサー区間をスキップ",
@@ -556,12 +566,7 @@ export const messages = {
     "Baixar versão mais recente",
     "Descargar última versión",
   ],
-  "무료 · v1.9.2 · GitHub 릴리즈에서 수동 설치": [
-    "Free · v1.9.2 · Install manually from GitHub",
-    "無料 · v1.9.2 · GitHubから手動インストール",
-    "Grátis · v1.9.2 · Instalação manual pelo GitHub",
-    "Gratis · v1.9.2 · Instalación manual desde GitHub",
-  ],
+  "무료 · v1.10.1 · main 브랜치 ZIP으로 수동 설치": ["Free · v1.10.1 · Install from the main branch ZIP", "無料 · v1.10.1 · mainのZIPから手動インストール", "Grátis · v1.10.1 · Instale pelo ZIP da main", "Gratis · v1.10.1 · Instala desde el ZIP de main"],
   "유저스크립트 설치 방법": [
     "Prefer a userscript?",
     "ユーザースクリプトの導入方法",
@@ -580,24 +585,14 @@ export const messages = {
     "Baixe a extensão.",
     "Descarga la extensión.",
   ],
-  "릴리즈의 extension ZIP 파일을 다운로드하고": [
-    "Download the extension ZIP from Releases",
-    "リリースのextension ZIPをダウンロードして、",
-    "Baixe o ZIP da extensão em Releases",
-    "Descarga el ZIP de la extensión en Releases",
-  ],
+  "저장소 ZIP 파일을 다운로드하고": ["Download the repository ZIP and", "リポジトリのZIPをダウンロードし、", "Baixe o ZIP do repositório e", "Descarga el ZIP del repositorio y"],
   "압축을 풀어주세요.": [
     "and unzip it.",
     "解凍してください。",
     "e descompacte o arquivo.",
     "y descomprímelo.",
   ],
-  "GitHub 릴리즈 열기": [
-    "Open GitHub Releases",
-    "GitHubのリリースを開く",
-    "Abrir Releases no GitHub",
-    "Abrir Releases en GitHub",
-  ],
+  "소스 ZIP 다운로드": ["Download source ZIP", "ソースZIPをダウンロード", "Baixar ZIP do código", "Descargar ZIP del código"],
   "개발자 모드를 켜주세요.": [
     "Enable Developer mode.",
     "デベロッパーモードをオンに。",
@@ -671,13 +666,7 @@ export const messages = {
     "Quais navegadores são compatíveis?",
     "¿Qué navegadores son compatibles?",
   ],
-  "확장 프로그램은 PC의 Chrome, Edge, Brave 등 Chromium 기반 브라우저용입니다. Firefox와 Safari 사용자는 저장소의 Tampermonkey·Violentmonkey 유저스크립트 안내를 확인해 주세요. 버전과 브라우저에 따라 지원 기능은 다를 수 있어요.":
-    [
-      "The extension is built for desktop Chromium browsers such as Chrome, Edge, and Brave. For Firefox or Safari, see the repository’s Tampermonkey / Violentmonkey userscript instructions. Features may vary by browser and version.",
-      "拡張機能はPC版Chrome・Edge・BraveなどChromium系ブラウザ向けです。Firefox・SafariはリポジトリのTampermonkey / Violentmonkey向け手順をご確認ください。ブラウザやバージョンにより機能が異なる場合があります。",
-      "A extensão foi feita para navegadores Chromium no PC, como Chrome, Edge e Brave. Para Firefox ou Safari, consulte as instruções de userscript Tampermonkey / Violentmonkey no repositório. As funções podem variar por navegador e versão.",
-      "La extensión está diseñada para navegadores Chromium de escritorio, como Chrome, Edge y Brave. Para Firefox o Safari, consulta las instrucciones de Tampermonkey / Violentmonkey del repositorio. Las funciones pueden variar según el navegador y la versión.",
-    ],
+  "확장은 PC의 Chrome·Edge·Brave용입니다. 별도 유저스크립트는 1.1.2이며 새 패널 기능을 포함하지 않습니다. Firefox·Safari 호환성은 검증되지 않았고, 확장과 유저스크립트의 동시 사용은 피하세요.": ["The extension targets desktop Chrome, Edge and Brave. The separate userscript is 1.1.2 and lacks the new panel. Firefox/Safari compatibility is unverified. Avoid running both editions at once.", "拡張はPCのChrome・Edge・Brave用です。別のユーザースクリプトは1.1.2で新パネルを含みません。Firefox・Safariは未検証です。両版の同時利用を避けてください。", "A extensão é para Chrome, Edge e Brave no desktop. O userscript separado é 1.1.2 e não inclui o novo painel. Firefox/Safari não foram verificados. Não execute ambas as edições juntas.", "La extensión es para Chrome, Edge y Brave en escritorio. El userscript separado es 1.1.2 y no incluye el nuevo panel. Firefox/Safari no están verificados. No uses ambas ediciones a la vez."],
   "모든 광고와 스폰서 구간을 건너뛰나요?": [
     "Does it skip every ad and sponsor?",
     "すべての広告をスキップできますか？",
@@ -716,13 +705,7 @@ export const messages = {
     "Como atualizar e fazer backup?",
     "¿Cómo actualizo y hago una copia?",
   ],
-  "새 릴리즈의 ZIP 파일을 내려받아 확장 파일을 교체하고, 브라우저 확장 관리 화면에서 새로고침하세요. 작업 전에 TubePilot의 백업 기능으로 설정과 라이브러리를 JSON 파일로 내보내는 것을 권장합니다.":
-    [
-      "Download the new release ZIP, replace the extension files, and reload it on your browser’s extensions page. Before updating, export your settings and library as a JSON file using TubePilot’s backup feature.",
-      "新しいリリースのZIPをダウンロードしてファイルを置き換え、拡張機能の管理画面で再読み込みしてください。更新前に、バックアップ機能で設定とライブラリをJSONに書き出すことをおすすめします。",
-      "Baixe o ZIP da nova versão, substitua os arquivos e recarregue a extensão na página de extensões do navegador. Antes, exporte configurações e biblioteca como JSON pelo recurso de backup.",
-      "Descarga el ZIP de la nueva versión, sustituye los archivos y recarga la extensión en el gestor del navegador. Antes, exporta la configuración y la biblioteca como JSON con la función de copia de seguridad.",
-    ],
+  "라이브러리에서 설정·영상·북마크를 먼저 백업하세요. 새 저장소 ZIP으로 기존 확장 폴더를 교체하고 확장 관리 화면과 YouTube를 새로고침하세요. 중복 설치는 피하세요.": ["Back up settings, videos and bookmarks from the Library first. Replace the installed folder using the new repository ZIP, reload the extension, then reload YouTube. Avoid duplicate installations.", "先にライブラリから設定・動画・ブックマークをバックアップします。新しいZIPで既存フォルダーを更新し、拡張とYouTubeを再読み込みします。重複インストールは避けてください。", "Faça backup de ajustes, vídeos e marcadores pela biblioteca. Atualize a pasta instalada com o novo ZIP, recarregue a extensão e o YouTube. Evite duplicatas.", "Haz una copia de ajustes, vídeos y marcadores desde la biblioteca. Actualiza la carpeta instalada con el nuevo ZIP, recarga la extensión y YouTube. Evita duplicados."],
   "문제가 생겼거나 제안하고 싶은 기능이 있어요.": [
     "Found a bug or have an idea?",
     "不具合の報告や機能の提案は？",
@@ -776,12 +759,7 @@ export const messages = {
   ],
   "메뉴 닫기": ["Close menu", "メニューを閉じる", "Fechar menu", "Cerrar menú"],
   "메뉴 열기": ["Open menu", "メニューを開く", "Abrir menu", "Abrir menú"],
-  "v1.9.2 · 더 깨끗해진 캡처": [
-    "v1.9.2 · A cleaner capture",
-    "v1.9.2 · もっときれいにキャプチャ",
-    "v1.9.2 · Capturas mais limpas",
-    "v1.9.2 · Capturas más limpias",
-  ],
+  "v1.10.1 · 시청을 가리지 않는 구간 패널": ["v1.10.1 · A segment panel that stays out of the way", "v1.10.1 · 視聴を邪魔しない区間パネル", "v1.10.1 · Um painel que deixa espaço ao vídeo", "v1.10.1 · Un panel que deja espacio al vídeo"],
   "시청의 주도권을,": [
     "Your YouTube.",
     "見る体験を、",

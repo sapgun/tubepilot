@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://tubepilot.trenchclub.dev/sitemap.xml

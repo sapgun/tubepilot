@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { motion, MotionConfig, useReducedMotion } from "motion/react";
 import {
   ArrowUpRight,
+  ArrowDownLeft,
   ArrowRight,
   Play,
   Pause,
@@ -42,7 +43,7 @@ import "./style.css";
 import { t, languages, getLocale, setLocale } from "./translations";
 
 const REPO = "https://github.com/sapgun/tubepilot";
-const RELEASES = `${REPO}/releases/latest`;
+const DOWNLOAD = `${REPO}/archive/refs/heads/main.zip`;
 const ETH = "0xe8F1B706223652E672ffF62cE1FEf9c7C98eFc68";
 const SOL = "BzsE914REG8op1uonEv7rz2NxiS9k3Jcrivz84NdNd5H";
 const imageURL = "/assets/mountain.jpg";
@@ -224,6 +225,18 @@ const getModes = () => [
 function ProductDemo() {
   const modes = getModes();
   const [mode, setMode] = useState("skip");
+  const [panelCollapsed, setPanelCollapsed] = useState(true);
+  const [panelWide, setPanelWide] = useState(false);
+  const [autoSkip, setAutoSkip] = useState(true);
+  const demoSegments = [
+    { start: 8, end: 13, label: t("인트로"), color: "#82c3f4" },
+    { start: 32, end: 46, label: t("스폰서"), color: "#b5ee72" },
+    { start: 90, end: 97, label: t("아웃트로"), color: "#efd36a" },
+  ];
+  const demoTime = (percent) => {
+    const seconds = Math.floor(percent * 7.54);
+    return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  };
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [saved, setSaved] = useState(false);
@@ -246,11 +259,15 @@ function ProductDemo() {
   useEffect(() => {
     if (!playing) return;
     const timer = setInterval(
-      () => setProgress((p) => (p >= 99 ? 0 : p + 0.2)),
+      () => setProgress((p) => {
+        const next = p >= 99 ? 0 : p + 0.2;
+        const segment = autoSkip && demoSegments.find(s => next >= s.start && next < s.end);
+        return segment ? segment.end : next;
+      }),
       150,
     );
     return () => clearInterval(timer);
-  }, [playing]);
+  }, [playing, autoSkip]);
   function select(id) {
     setMode(id);
     setZoom(1);
@@ -439,6 +456,26 @@ function ProductDemo() {
                 </div>
               </div>
             </div>
+            <div className={`segment-panel ${panelCollapsed ? "is-collapsed" : ""} ${panelWide ? "is-wide" : ""}`}>
+              <div className="segment-panel-head">
+                <Logo small />
+                <span className="segment-panel-version">v1.10.1</span>
+                <div className="segment-panel-actions">
+                  {!panelCollapsed && <button className="icon-button" aria-label={panelWide ? t("패널 작게 보기") : t("패널 넓게 보기")} onClick={() => setPanelWide(!panelWide)}>{panelWide ? <ArrowDownLeft size={15} /> : <ArrowUpRight size={15} />}</button>}
+                  <button className="icon-button" aria-controls="demo-panel-content" aria-expanded={!panelCollapsed} aria-label={panelCollapsed ? t("패널 펼치기") : t("패널 접기")} onClick={() => setPanelCollapsed(!panelCollapsed)}>{panelCollapsed ? <Plus size={16} /> : <Minus size={16} />}</button>
+                </div>
+              </div>
+              <div id="demo-panel-content" hidden={panelCollapsed}>
+                <div className="segment-panel-summary"><strong>{t("영상 구간")} · 3</strong><span>{t("예시 구간 데이터")}</span></div>
+                <p className="segment-panel-source">{t("등록된 구간만 표시해요. 미등록 광고를 자동 분석하지 않아요.")}</p>
+                <div className="segment-panel-list">
+                  {demoSegments.map(seg => <div key={seg.start} className={`segment-panel-row ${progress >= seg.start && progress < seg.end ? "current" : ""}`} style={{ "--segment-color": seg.color }}>
+                    <span>{seg.label}</span><code>{demoTime(seg.start)}–{demoTime(seg.end)}</code>
+                    <button onClick={() => { setProgress(seg.end); setNotice(t("구간 끝으로 이동했어요")); }}>{t("건너뛰기")}</button>
+                  </div>)}
+                </div>
+                <label className="segment-panel-auto"><input type="checkbox" checked={autoSkip} onChange={e => setAutoSkip(e.target.checked)} />{t("데모 구간 자동 스킵")}</label>
+                <details className="segment-panel-settings"><summary>{t("재생 도구")}</summary>
             <div className="cockpit">
               <div className="cockpit-brand">
                 <Grip size={14} />
@@ -450,7 +487,7 @@ function ProductDemo() {
                   onClick={() => {
                     setMode("skip");
                     setProgress(46);
-                    setNotice(t("스폰서 구간 00:32를 건너뛰었어요"));
+                    setNotice(t("스폰서 구간 끝으로 이동했어요"));
                   }}
                   aria-label={t("스폰서 구간 스킵")}
                 >
@@ -508,6 +545,10 @@ function ProductDemo() {
                 </button>
               </div>
             </div>
+                </details>
+              </div>
+            </div>
+            <p className="panel-demo-hint">{panelCollapsed ? t("＋로 패널을 펼쳐보세요. 영상은 가리지 않아요.") : t("−로 접어도 구간 스킵은 계속돼요.")}</p>
           </div>
           <aside className="demo-sidebar">
             <div className="sidebar-head">
@@ -872,16 +913,17 @@ function Installation() {
           <br />
           {t("브라우저에 TubePilot을 더하기만 하세요.")}
         </p>
-        <ButtonLink href={RELEASES} target="_blank" rel="noreferrer">
+        <ButtonLink href={DOWNLOAD} target="_blank" rel="noreferrer">
           <Download size={17} /> {t("최신 버전 다운로드")}{" "}
           <ArrowUpRight size={17} />
         </ButtonLink>
         <small className="install-note">
-          {t("무료 · v1.9.2 · GitHub 릴리즈에서 수동 설치")}
+          {t("무료 · v1.10.1 · main 브랜치 ZIP으로 수동 설치")}
         </small>
+        <p className="install-update">{t("업데이트 전 백업하고, 기존 폴더를 교체한 뒤 확장과 YouTube를 새로고침하세요.")}</p>
         <a
           className="text-link"
-          href={`${REPO}#b-userscript-alternative`}
+          href={`${REPO}/blob/main/tubepilot.user.js`}
           target="_blank"
           rel="noreferrer"
         >
@@ -919,11 +961,11 @@ function Installation() {
             <div>
               <h3>{t("최신 확장 파일을 내려받으세요.")}</h3>
               <p>
-                {t("릴리즈의 extension ZIP 파일을 다운로드하고")}
+                {t("저장소 ZIP 파일을 다운로드하고")}
                 <br className="desktop-br" /> {t("압축을 풀어주세요.")}
               </p>
-              <a href={RELEASES} target="_blank" rel="noreferrer">
-                {t("GitHub 릴리즈 열기")} <ArrowUpRight size={14} />
+              <a href={DOWNLOAD} target="_blank" rel="noreferrer">
+                {t("소스 ZIP 다운로드")} <ArrowUpRight size={14} />
               </a>
             </div>
           </li>
@@ -978,7 +1020,7 @@ const getFaqs = () => [
   [
     t("어떤 브라우저에서 사용할 수 있나요?"),
     t(
-      "확장 프로그램은 PC의 Chrome, Edge, Brave 등 Chromium 기반 브라우저용입니다. Firefox와 Safari 사용자는 저장소의 Tampermonkey·Violentmonkey 유저스크립트 안내를 확인해 주세요. 버전과 브라우저에 따라 지원 기능은 다를 수 있어요.",
+      "확장은 PC의 Chrome·Edge·Brave용입니다. 별도 유저스크립트는 1.1.2이며 새 패널 기능을 포함하지 않습니다. Firefox·Safari 호환성은 검증되지 않았고, 확장과 유저스크립트의 동시 사용은 피하세요.",
     ),
   ],
   [
@@ -1001,7 +1043,7 @@ const getFaqs = () => [
   [
     t("업데이트와 데이터 백업은 어떻게 하나요?"),
     t(
-      "새 릴리즈의 ZIP 파일을 내려받아 확장 파일을 교체하고, 브라우저 확장 관리 화면에서 새로고침하세요. 작업 전에 TubePilot의 백업 기능으로 설정과 라이브러리를 JSON 파일로 내보내는 것을 권장합니다.",
+      "라이브러리에서 설정·영상·북마크를 먼저 백업하세요. 새 저장소 ZIP으로 기존 확장 폴더를 교체하고 확장 관리 화면과 YouTube를 새로고침하세요. 중복 설치는 피하세요.",
     ),
   ],
   [
@@ -1103,11 +1145,11 @@ function App({ locale, onLocaleChange }) {
           <section className="hero container">
             <a
               className="release-pill"
-              href={`${REPO}/releases/tag/v1.9.2`}
+              href={`${REPO}/blob/main/CHANGELOG.md`}
               target="_blank"
               rel="noreferrer"
             >
-              <span>NEW</span> {t("v1.9.2 · 더 깨끗해진 캡처")}{" "}
+              <span>NEW</span> {t("v1.10.1 · 시청을 가리지 않는 구간 패널")}{" "}
               <ChevronRight size={14} />
             </a>
             <h1>
@@ -1299,7 +1341,7 @@ function App({ locale, onLocaleChange }) {
             <div>
               <span>{t("PRODUCT")}</span>
               <a href="#features">{t("기능 소개")}</a>
-              <a href={RELEASES} target="_blank" rel="noreferrer">
+              <a href={DOWNLOAD} target="_blank" rel="noreferrer">
                 {t("릴리즈 노트")} <ArrowUpRight size={12} />
               </a>
               <a href={`/privacy.html?lang=${localeForLink()}`}>

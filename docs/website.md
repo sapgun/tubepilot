@@ -10,7 +10,7 @@ tubepilot/
 │   ├── scripts/
 │   ├── package.json
 │   └── package-lock.json
-├── extension/               확장 프로그램 (변경 없음)
+├── extension/               확장 프로그램
 ├── assets/                  저장소 README 이미지
 ├── docs/                    스토어 제출 자료와 프로젝트 문서
 ├── tubepilot.user.js         유저스크립트 (변경 없음)
@@ -19,7 +19,9 @@ tubepilot/
 
 ## Vercel
 
-- URL: https://tubepilot-rho.vercel.app/
+- Custom domain: https://tubepilot.trenchclub.dev/
+- Fallback URL: https://tubepilot-rho.vercel.app/
+- Vercel project: `tubepilot` (`sapgun-s-projects`)
 - Root Directory: 저장소 루트 (`.` 또는 빈 값)
 - 설정 파일: 루트 `vercel.json`
 - 설치: `npm ci --prefix landing`
@@ -52,3 +54,22 @@ npm run build --prefix landing
 ```
 
 Vercel 설정 근거: https://vercel.com/docs/project-configuration/vercel-json
+
+## 2026-10-10 landing update
+
+- Extension 1.10.1: collapsible compact/wide segment panel demo, manual segment skips and automatic demo skipping. Demo uses sample data, not a live YouTube video.
+- Download links use the main-branch source ZIP; select its `extension/` folder for installation. The separate userscript remains 1.1.2.
+- Canonical URLs, Open Graph preview image, robots.txt and sitemap.xml target `tubepilot.trenchclub.dev`.
+- Local checks: build and translation checks; 320px/390px × five languages; panel geometry, manual/auto skips, privacy-page rendering and runtime errors.
+
+### DNS and domain activation
+
+Vercel has the subdomain assigned to the TubePilot project. The authoritative provider is Cloudflare. Add the record recommended by Vercel's domain verification:
+
+| Type | Name | Target | Proxy | TTL |
+|---|---|---|---|---|
+| CNAME | tubepilot | 2fdfb27f248c3f05.vercel-dns-017.com | DNS only | Auto |
+
+This target is the value returned for this project on 2026-10-10. Re-check Vercel before using it for a different project. Keep the apex, www, MX and other subdomain records intact.
+
+After saving in Cloudflare, run `vercel domains verify tubepilot.trenchclub.dev --scope sapgun-s-projects` and verify HTTPS for `/`, `/privacy.html`, `/robots.txt`, `/sitemap.xml` and the social image. Update README/store URLs and enable the old-domain redirect only after the custom hostname serves the tested production build.
