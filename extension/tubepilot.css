@@ -175,3 +175,42 @@ html.ytpc-capturing .ytp-caption-window-container { display: none !important; }
 .ytpc-bmrow-actions button { background: #272727; color: #ddd; border: 1px solid #4a4a4a;
   border-radius: 6px; font-size: 11px; padding: 4px 10px; cursor: pointer; }
 .ytpc-bmrow-actions button:hover { border-color: #3b82f6; }
+
+/* Segment-first compact panel */
+#ytpc-panel { width: 340px; max-width: calc(100vw - 24px); background: #14171d; border-color: #303540; border-radius: 16px; box-shadow: 0 16px 48px #0006; }
+#ytpc-panel .ytpc-head { padding: 14px 16px; }
+#ytpc-panel .ytpc-brand { font-size: 15px; letter-spacing: -.4px; }
+#ytpc-panel .ytpc-brand small { margin-left: 10px; font-size: 9px; letter-spacing: 1.4px; color: #91a2b8; }
+#ytpc-panel .ytpc-body, #ytpc-panel.ytpc-inline .ytpc-body { display: block; padding: 14px 16px; border-color: #303540; }
+#ytpc-panel .ytpc-review strong { font-size: 13px; }
+#ytpc-panel .ytpc-review p { color: #95a1b4; font-size: 11px; margin: 5px 0 12px; }
+#ytpc-panel .ytpc-timeline { height: 8px; border-radius: 5px; background: #303642; position: relative; overflow: hidden; margin-bottom: 12px; }
+#ytpc-panel .ytpc-timeline-segment { position: absolute; top: 0; height: 100%; padding: 0; border: 0; cursor: pointer; }
+#ytpc-panel .ytpc-segment-list { max-height: 180px; overflow-y: auto; }
+#ytpc-panel .ytpc-segment { display: flex; align-items: center; gap: 12px; padding: 8px 10px; margin: 4px 0; border-left: 3px solid var(--segment-color); background: #1d222b; border-radius: 6px; }
+#ytpc-panel .ytpc-segment.is-active { background: #2c3545; }
+#ytpc-panel .ytpc-segment span { flex: 1; font-variant-numeric: tabular-nums; }
+#ytpc-panel .ytpc-segment button { background: #303e54; color: #d8e6fc; border: 0; padding: 5px 9px; border-radius: 6px; cursor: pointer; }
+#ytpc-panel .ytpc-settings { border-top: 1px solid #303540; margin-top: 12px; padding-top: 10px; }
+#ytpc-panel .ytpc-settings summary { color: #bbc7d8; cursor: pointer; padding: 4px 0; }
+#ytpc-panel .ytpc-settings .ytpc-cats { display: grid; grid-template-columns: 1fr 1fr; margin: 10px 0; gap: 4px; }
+#ytpc-panel .ytpc-settings .ytpc-zoomrow { display: flex; margin-top: 10px; }
+#ytpc-panel .ytpc-settings .ytpc-zoomrow button { flex: 1; padding: 6px; }
+#ytpc-panel input[type=checkbox] { accent-color: #92b9f7; }
+#ytpc-panel button:focus-visible, #ytpc-panel summary:focus-visible { outline: 2px solid #92b9f7; outline-offset: 2px; }
+#ytpc-panel button:disabled { opacity: .45; cursor: default; }
+
+/* Keep the viewing surface clear; collapse always wins over inline layout. */
+#ytpc-panel.ytpc-hidden .ytpc-body { display: none !important; }
+#ytpc-panel.ytpc-wide:not(.ytpc-inline) { width: 540px; }
+#ytpc-panel.ytpc-hidden { width: 158px; }
+#ytpc-panel.ytpc-hidden.ytpc-inline { width: 158px; max-width: 100%; }
+#ytpc-panel.ytpc-hidden .ytpc-head { padding: 8px 12px; }
+#ytpc-panel.ytpc-hidden .ytpc-brand { font-size: 13px; }
+#ytpc-panel.ytpc-hidden .ytpc-brand small { display: none; }
+#ytpc-panel .ytpc-panel-controls { display: flex; gap: 5px; margin-left: 8px; }
+#ytpc-panel .ytpc-panel-controls button { width: 28px; height: 28px; padding: 0; border: 1px solid #394355; border-radius: 8px; background: #222a36; color: #d8e6fc; cursor: pointer; font-size: 16px; }
+#ytpc-panel .ytpc-panel-controls button[hidden] { display: none; }
+#ytpc-panel:not(.ytpc-inline) .ytpc-body { max-height: min(65vh, 560px); overflow-y: auto; }
+#ytpc-panel.ytpc-inline:not(.ytpc-wide):not(.ytpc-hidden) { width: 340px; }
+#ytpc-panel .ytpc-brand { white-space: nowrap; }

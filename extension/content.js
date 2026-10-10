@@ -11,7 +11,9 @@
     adMute: true,   // 광고 중 음소거
     sbSkip: true,   // SponsorBlock 구간 자동 스킵
     sbMark: true,   // SponsorBlock 구간 마킹 표시
-    panelMode: 'corner',  // corner(우측 하단) | player(플레이어 위) | below(플레이어 아래 고정)
+    panelCollapsed: true,
+    panelSize: 'compact',
+    panelMode: 'below',  // corner(우측 하단) | player(플레이어 위) | below(플레이어 아래 고정)
     panelPos: null,       // {left, top} 수동 드래그 위치 (있으면 모드보다 우선)
     opacity: 100,         // 패널 투명도 (%)
     hideComments: false,  // 댓글 숨기기 (몰입 모드)
@@ -86,7 +88,7 @@
   let adState = null;          // { muted, rate } 광고 시작 전 상태
   let statusEl = null, zoomLbl = null;
 
-  function setStatus(t) { if (statusEl) statusEl.textContent = t; }
+  function setStatus(t) { if (statusEl) statusEl.textContent = t; renderSegmentReview(); }
 
   /* ================= 영상 변경 감지 ================= */
   function onVideoChange(vid) {
@@ -106,7 +108,7 @@
 
   /* ================= SponsorBlock ================= */
   function loadSegments(vid) {
-    const cats = Object.keys(cfg.cats).filter(c => cfg.cats[c]);
+    const cats = Object.keys(CAT_META);
     if (!cats.length) { setStatus(''); return; }
     tpFetch({
       method: 'GET',
@@ -120,10 +122,11 @@
             const data = JSON.parse(res.responseText);
             segments = [];
             data.forEach(e => {
+              if (!CAT_META[e.category] || (e.actionType && e.actionType !== 'skip')) return;
               // 실제 API는 segment(단수, [start, end])로 옴. 혹시 모를 복수형도 허용.
               const list = Array.isArray(e.segment) ? [e.segment] : (e.segments || []);
               list.forEach(s => {
-                if (Array.isArray(s) && s.length >= 2 && isFinite(s[0]) && isFinite(s[1]) && s[1] > s[0]) {
+                if (Array.isArray(s) && s.length >= 2 && typeof s[0] === 'number' && typeof s[1] === 'number' && isFinite(s[0]) && isFinite(s[1]) && s[0] >= 0 && s[1] > s[0]) {
                   segments.push({ start: s[0], end: s[1], cat: e.category });
                 }
               });
@@ -174,6 +177,66 @@
       bar.appendChild(el);
     });
   }
+  function renderSegmentReview() {
+    const host = document.querySelector('.ytpc-review');
+    if (!host) return;
+    const v = getVideo();
+    const duration = v && Number.isFinite(v.duration) ? v.duration : 0;
+    const active = v && !isAdShowing() ? segments.findIndex(s => v.currentTime >= s.start && v.currentTime < s.end) : -1;
+    const signature = JSON.stringify([currentVideoId, segments, cfg.cats, cfg.sbSkip, duration, active]);
+    if (host.dataset.signature === signature) return;
+    host.dataset.signature = signature;
+    host.replaceChildren();
+    const title = document.createElement('strong');
+    title.textContent = T('review_title') + ' · ' + segments.length;
+    host.appendChild(title);
+    const source = document.createElement('p');
+    source.textContent = T('review_source');
+    host.appendChild(source);
+    const timeline = document.createElement('div');
+    timeline.className = 'ytpc-timeline';
+    timeline.setAttribute('aria-label', T('review_title'));
+    host.appendChild(timeline);
+    const list = document.createElement('div');
+    list.className = 'ytpc-segment-list';
+    segments.forEach((seg, index) => {
+      if (duration && seg.start >= duration) return;
+      const end = duration ? Math.min(seg.end, duration) : seg.end;
+      const label = T(CAT_META[seg.cat].labelKey);
+      const item = document.createElement('div');
+      item.className = 'ytpc-segment' + (index === active ? ' is-active' : '');
+      item.style.setProperty('--segment-color', CAT_META[seg.cat].color);
+      const text = document.createElement('span');
+      text.textContent = label + '  ' + fmtTime(seg.start) + '–' + fmtTime(end);
+      item.appendChild(text);
+      const skip = document.createElement('button');
+      skip.textContent = T('review_skip');
+      skip.disabled = !duration || isAdShowing();
+      skip.setAttribute('aria-label', label + ' ' + T('review_skip'));
+      skip.addEventListener('click', () => {
+        const video = getVideo();
+        if (!video || isAdShowing() || !Number.isFinite(video.duration)) return;
+        video.currentTime = Math.min(end, video.duration);
+        setStatus(T('st_skipped', { label }));
+      });
+      item.appendChild(skip);
+      list.appendChild(item);
+      if (duration) {
+        const mark = document.createElement('button');
+        mark.className = 'ytpc-timeline-segment';
+        mark.style.left = (seg.start / duration * 100) + '%';
+        mark.style.width = Math.max(.5, (end - seg.start) / duration * 100) + '%';
+        mark.style.background = CAT_META[seg.cat].color;
+        mark.title = text.textContent;
+        mark.setAttribute('aria-label', text.textContent);
+        mark.disabled = isAdShowing();
+        mark.addEventListener('click', () => { if (!isAdShowing() && getVideo()) getVideo().currentTime = seg.start; });
+        timeline.appendChild(mark);
+      }
+    });
+    host.appendChild(list);
+  }
+
   function fmtTime(t) {
     t = Math.max(0, Math.floor(t));
     const m = Math.floor(t / 60), s = t % 60;
@@ -186,7 +249,7 @@
     if (!v || !isFinite(v.duration)) return;
     const t = v.currentTime;
     for (const s of segments) {
-      if (t >= s.start && t < s.end - 0.05) {
+      if (cfg.cats[s.cat] && t >= s.start && t < s.end - 0.05) {
         v.currentTime = Math.min(s.end + 0.05, v.duration - 0.05);
         const meta = CAT_META[s.cat] || {};
         const catLabel = T(meta.labelKey || s.cat);
@@ -372,7 +435,7 @@
   function makeDraggable(panel, head) {
     let drag = null;
     head.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || e.target.closest('button')) return;
       const inlineMode = cfg.panelMode === 'below'; // 인라인 모드는 드래그 대신 클릭만
       let l = 0, t = 0;
       if (!inlineMode) {
@@ -404,11 +467,14 @@
         saveCfg();
         setStatus(T('st_panel_saved'));
       } else {
-        panel.classList.toggle('ytpc-hidden'); // 클릭 = 접기/펼치기
+        cfg.panelCollapsed = !cfg.panelCollapsed;
+        applyPanelDisplay();
+        saveCfg();
       }
       drag = null;
     });
     head.addEventListener('dblclick', (e) => {
+      if (e.target.closest('button')) return;
       e.preventDefault();
       cfg.panelPos = null;
       saveCfg();
@@ -418,6 +484,28 @@
   }
 
   /* ================= 컨트롤 패널 ================= */
+  function applyPanelDisplay() {
+    const panel = document.getElementById('ytpc-panel');
+    if (!panel) return;
+    panel.classList.toggle('ytpc-hidden', !!cfg.panelCollapsed);
+    panel.classList.toggle('ytpc-wide', cfg.panelSize === 'wide');
+    const collapse = panel.querySelector('#ytpc-collapse-toggle');
+    const size = panel.querySelector('#ytpc-size-toggle');
+    if (collapse) {
+      collapse.textContent = cfg.panelCollapsed ? '＋' : '−';
+      collapse.title = T(cfg.panelCollapsed ? 'panel_expand' : 'panel_collapse');
+      collapse.setAttribute('aria-label', collapse.title);
+      collapse.setAttribute('aria-expanded', String(!cfg.panelCollapsed));
+    }
+    if (size) {
+      size.textContent = cfg.panelSize === 'wide' ? '↙' : '↗';
+      size.title = T(cfg.panelSize === 'wide' ? 'panel_compact' : 'panel_wide');
+      size.setAttribute('aria-label', size.title);
+      size.hidden = !!cfg.panelCollapsed;
+    }
+    positionPanel();
+  }
+
   function buildPanel() {
     if (document.getElementById('ytpc-panel')) return;
     const panel = document.createElement('div');
@@ -425,11 +513,30 @@
 
     const head = document.createElement('div');
     head.className = 'ytpc-head';
-    head.innerHTML = '<span>🎬 TubePilot</span><span>–</span>';
+    head.innerHTML = '<span class="ytpc-brand">TubePilot <small>WATCH BETTER</small></span>';
+    const controls = document.createElement('div');
+    controls.className = 'ytpc-panel-controls';
+    const sizeButton = document.createElement('button');
+    sizeButton.id = 'ytpc-size-toggle';
+    sizeButton.addEventListener('click', () => {
+      cfg.panelSize = cfg.panelSize === 'wide' ? 'compact' : 'wide';
+      cfg.panelCollapsed = false;
+      applyPanelDisplay(); saveCfg();
+    });
+    const collapseButton = document.createElement('button');
+    collapseButton.id = 'ytpc-collapse-toggle';
+    collapseButton.setAttribute('aria-controls', 'ytpc-panel-body');
+    collapseButton.addEventListener('click', () => {
+      cfg.panelCollapsed = !cfg.panelCollapsed;
+      applyPanelDisplay(); saveCfg();
+    });
+    controls.append(sizeButton, collapseButton);
+    head.appendChild(controls);
     panel.appendChild(head);
 
     const body = document.createElement('div');
     body.className = 'ytpc-body';
+    body.id = 'ytpc-panel-body';
 
     function row(label, key) {
       const l = document.createElement('label');
@@ -562,8 +669,19 @@
     statusEl.className = 'ytpc-status';
     body.appendChild(statusEl);
 
+    const settings = document.createElement('details');
+    settings.className = 'ytpc-settings';
+    const summary = document.createElement('summary');
+    summary.textContent = T('review_settings');
+    settings.appendChild(summary);
+    Array.from(body.children).filter(el => el !== statusEl).forEach(el => settings.appendChild(el));
+    const review = document.createElement('section');
+    review.className = 'ytpc-review';
+    body.insertBefore(review, statusEl);
+    body.appendChild(settings);
     panel.appendChild(body);
     (document.body || document.documentElement).appendChild(panel);
+    applyPanelDisplay();
     makeDraggable(panel, head);
     positionPanel();
     applyCommentVisibility();
@@ -1228,6 +1346,7 @@
     }
     handleAds();
     handleSponsorSkip();
+    renderSegmentReview();
     // 구간 북마크 점프 후 끝에서 자동 일시정지
     if (bmStopAt && currentVideoId === bmStopAt.videoId) {
       const pv = getVideo();
@@ -1284,6 +1403,7 @@
             const oldHk = JSON.stringify((cfg.hotkeys || {}));
             cfg = Object.assign({}, DEFAULTS, changes.tp_cfg.newValue || {});
             cfg.cats = Object.assign({}, DEFAULTS.cats, cfg.cats || {});
+            applyPanelDisplay();
             // 단축키가 바뀌면 힌트 문구 갱신을 위해 패널 리빌드
             if (JSON.stringify(cfg.hotkeys || {}) !== oldHk) {
               const p2 = document.getElementById('ytpc-panel');

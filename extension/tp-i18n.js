@@ -5,6 +5,16 @@ var TP_SUPPORTED_LANGS = ['ko', 'en', 'ja', 'es', 'pt'];
 
 var TP_LOCALES = {
 ko: {
+  panel_expand: "패널 펼치기",
+  panel_collapse: "패널 접기",
+  panel_compact: "작게 보기",
+  panel_wide: "넓게 보기",
+
+  review_title: "영상 구간",
+  review_source: "SponsorBlock 제보 기반 · 미등록 구간은 표시되지 않습니다",
+  review_skip: "건너뛰기",
+  review_settings: "재생 및 스킵 설정",
+
   st_loading: '구간 정보 불러오는 중…',
   st_loaded: '스킵 구간 {n}개 로드됨',
   st_empty: '스킵 구간 없음',
@@ -126,6 +136,16 @@ ko: {
   p_feat_comments: '댓글 숨기기'
 },
 en: {
+  panel_expand: "Expand panel",
+  panel_collapse: "Collapse panel",
+  panel_compact: "Compact view",
+  panel_wide: "Wide view",
+
+  review_title: "Video segments",
+  review_source: "SponsorBlock community data · Unreported segments are not shown",
+  review_skip: "Skip",
+  review_settings: "Playback & skip settings",
+
   st_loading: 'Loading segment info…',
   st_loaded: '{n} skip segments loaded',
   st_empty: 'No skip segments',
@@ -247,6 +267,16 @@ en: {
   p_feat_comments: 'Hide comments'
 },
 ja: {
+  panel_expand: "パネルを開く",
+  panel_collapse: "パネルを閉じる",
+  panel_compact: "コンパクト表示",
+  panel_wide: "拡大表示",
+
+  review_title: "動画の区間",
+  review_source: "SponsorBlock 投稿データ · 未登録の区間は表示されません",
+  review_skip: "スキップ",
+  review_settings: "再生とスキップの設定",
+
   st_loading: '区間情報を読み込み中…',
   st_loaded: '{n}件のスキップ区間を読み込み',
   st_empty: 'スキップ区間なし',
@@ -368,6 +398,16 @@ ja: {
   p_feat_comments: 'コメント非表示'
 },
 es: {
+  panel_expand: "Abrir panel",
+  panel_collapse: "Cerrar panel",
+  panel_compact: "Vista compacta",
+  panel_wide: "Vista amplia",
+
+  review_title: "Segmentos",
+  review_source: "Datos de SponsorBlock · No se muestran segmentos sin reportar",
+  review_skip: "Saltar",
+  review_settings: "Ajustes de reproducción",
+
   st_loading: 'Cargando información de segmentos…',
   st_loaded: '{n} segmentos de salto cargados',
   st_empty: 'Sin segmentos de salto',
@@ -489,6 +529,16 @@ es: {
   p_feat_comments: 'Ocultar comentarios'
 },
 pt: {
+  panel_expand: "Abrir painel",
+  panel_collapse: "Fechar painel",
+  panel_compact: "Visualização compacta",
+  panel_wide: "Visualização ampla",
+
+  review_title: "Trechos do vídeo",
+  review_source: "Dados do SponsorBlock · Trechos não reportados não aparecem",
+  review_skip: "Pular",
+  review_settings: "Configurações de reprodução",
+
   st_loading: 'Carregando informações de segmentos…',
   st_loaded: '{n} segmentos de pulo carregados',
   st_empty: 'Sem segmentos de pulo',

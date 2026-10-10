@@ -22,7 +22,7 @@ const { window } = dom;
 const document = window.document;
 
 // ---- chrome.storage stub (메모리) ----
-const store = {};
+const store = { tp_cfg: { panelMode: 'corner' } };
 const changeListeners = [];
 window.chrome = {
   storage: {
@@ -562,6 +562,35 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   await window.chrome.storage.local.set({ tp_lang: 'ko' });
   await sleep(100);
   ok('언어 복귀 ko', rowText().includes('영상 광고 자동 스킵'));
+
+  // Segment review stays available when automatic skipping is disabled.
+  await window.chrome.storage.local.set({ tp_cfg: { ...store.tp_cfg, sbSkip: false, cats: { sponsor: false, intro: false } } });
+  video.currentTime = 12;
+  await sleep(400);
+  ok('Disabled category is still visible', document.querySelectorAll('.ytpc-segment').length === 2);
+  ok('Automatic skip disabled preserves playback', video.currentTime === 12);
+  const sponsorRow = [...document.querySelectorAll('.ytpc-segment')].find(el => el.textContent.includes('스폰서'));
+  sponsorRow.querySelector('button').click();
+  ok('Manual segment skip reaches end', video.currentTime === 20);
+  ok('Settings collapsed by default', !document.querySelector('.ytpc-settings').open);
+  player.classList.add('ad-showing');
+  video.currentTime = 12;
+  sponsorRow.querySelector('button').click();
+  ok('Manual skip cannot seek through platform ad', video.currentTime === 12);
+  player.classList.remove('ad-showing');
+
+  const collapseControl = document.querySelector('#ytpc-collapse-toggle');
+  collapseControl.click();
+  ok('Collapse button persists state', store.tp_cfg.panelCollapsed === document.querySelector('#ytpc-panel').classList.contains('ytpc-hidden'));
+  const sizeControl = document.querySelector('#ytpc-size-toggle');
+  sizeControl.click();
+  ok('Wide view expands and persists', store.tp_cfg.panelSize === 'wide' && !store.tp_cfg.panelCollapsed && document.querySelector('#ytpc-panel').classList.contains('ytpc-wide'));
+  sizeControl.click();
+  ok('Compact view restores width mode', store.tp_cfg.panelSize === 'compact');
+  collapseControl.click();
+  await window.chrome.storage.local.set({ tp_lang: 'en' });
+  await sleep(400);
+  ok('Collapse survives panel rebuild', document.querySelector('#ytpc-panel').classList.contains('ytpc-hidden') && document.querySelector('#ytpc-collapse-toggle').getAttribute('aria-expanded') === 'false');
 
   // --- 결과 ---
   let fail = 0;
