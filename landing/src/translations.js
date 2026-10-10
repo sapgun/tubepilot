@@ -1,5 +1,8 @@
 // Source language: Korean. Columns: English, Japanese, Portuguese, Spanish.
 export const messages = {
+"스킵 되돌리기": ["Undo a skip", "スキップを元に戻す", "Desfazer um pulo", "Deshacer un salto"],
+"채널별·종류별 스킵 설정": ["Channel and category skip rules", "チャンネル・種類別スキップ設定", "Regras por canal e categoria", "Reglas por canal y categoría"],
+"내 스킵 구간 저장": ["Save your own skip ranges", "自分のスキップ区間を保存", "Salve seus próprios trechos", "Guarda tus propios tramos"],
 "TubePilot 후원": ["Support TubePilot", "TubePilotを支援", "Apoie o TubePilot", "Apoya TubePilot"],
 "더 좋은 TubePilot을 함께 만들어 주세요.": ["Help make TubePilot even better.", "より良いTubePilotを、一緒に。", "Ajude a tornar o TubePilot ainda melhor.", "Ayuda a mejorar TubePilot."],
 "작은 후원이 무료 도구의 개발과 개선에 힘이 됩니다.": ["A little support helps us build and improve this free tool.", "小さな支援が、無料ツールの開発と改善を支えます。", "Uma pequena contribuição ajuda a desenvolver e melhorar esta ferramenta gratuita.", "Una pequeña contribución ayuda a desarrollar y mejorar esta herramienta gratuita."],
@@ -571,7 +574,7 @@ export const messages = {
     "Baixar versão mais recente",
     "Descargar última versión",
   ],
-  "무료 · v1.10.1 · main 브랜치 ZIP으로 수동 설치": ["Free · v1.10.1 · Install from the main branch ZIP", "無料 · v1.10.1 · mainのZIPから手動インストール", "Grátis · v1.10.1 · Instale pelo ZIP da main", "Gratis · v1.10.1 · Instala desde el ZIP de main"],
+  "무료 · v1.11.0 · main 브랜치 ZIP으로 수동 설치": ["Free · v1.11.0 · Install from the main branch ZIP", "無料 · v1.11.0 · mainのZIPから手動インストール", "Grátis · v1.11.0 · Instale pelo ZIP da main", "Gratis · v1.11.0 · Instala desde el ZIP de main"],
   "유저스크립트 설치 방법": [
     "Prefer a userscript?",
     "ユーザースクリプトの導入方法",
@@ -764,7 +767,7 @@ export const messages = {
   ],
   "메뉴 닫기": ["Close menu", "メニューを閉じる", "Fechar menu", "Cerrar menú"],
   "메뉴 열기": ["Open menu", "メニューを開く", "Abrir menu", "Abrir menú"],
-  "v1.10.1 · 시청을 가리지 않는 구간 패널": ["v1.10.1 · A segment panel that stays out of the way", "v1.10.1 · 視聴を邪魔しない区間パネル", "v1.10.1 · Um painel que deixa espaço ao vídeo", "v1.10.1 · Un panel que deja espacio al vídeo"],
+  "v1.11.0 · 스킵도 내 방식대로": ["v1.11.0 · Skip on your terms", "v1.11.0 · スキップも自分らしく", "v1.11.0 · Pule do seu jeito", "v1.11.0 · Salta a tu manera"],
   "시청의 주도권을,": [
     "Your YouTube.",
     "見る体験を、",

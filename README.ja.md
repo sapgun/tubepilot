@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.10.1-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.11.0-blue" alt="version">
   <img src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Brave-orange" alt="platform">
   <img src="https://img.shields.io/badge/languages-ko%20%7C%20en%20%7C%20ja%20%7C%20es%20%7C%20pt-purple" alt="languages">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
@@ -36,6 +36,10 @@ TubePilot はデスクトップの YouTube プレーヤーに、区間表示・�
 
 | 機能 | 内容 |
 |---|---|
+| スキップを元に戻す | 6秒間表示されるボタンで元の位置に戻ります。今回の視聴では、その区間と重なる区間を自動スキップしません。 |
+| 種類別の動作 | 各種類に自動・手動・表示のみを設定。全体の自動スキップ設定も適用されます。 |
+| チャンネル設定 | 現在のチャンネルに全体設定・手動・表示のみを指定。表示名ではなくチャンネルリンクで区別します。 |
+| 自分のスキップ区間 | 開始・終了を入力、または現在位置を記録。この動画だけに適用し、ブラウザ内に保存します。一覧から削除でき、JSON設定バックアップにも含まれます。SponsorBlockには投稿しません。 |
 | 区間表示 | スポンサー、イントロ、アウトロ、自己宣伝、登録の呼びかけ、主題外の音楽をタイムラインと一覧に表示。開始・終了時刻と手動スキップを提供します。 |
 | 自動スキップ | 全体および種類別に設定できます。自動スキップを無効にしても区間は表示されます。 |
 | パネル | `＋ / −` で開閉、`↗ / ↙` で拡大・コンパクト表示。状態を保存し、新規インストールでは動画の下に閉じた状態で表示します。 |
@@ -69,7 +73,7 @@ TubePilot はデスクトップの YouTube プレーヤーに、区間表示・�
 
 区間は [SponsorBlock API](https://wiki.sponsor.ajay.app/w/API_Docs) のコミュニティ投稿に基づきます。未登録の広告を動画解析で発見しません。投稿がない動画と取得エラーは別の状態です。YouTube広告と動画内スポンサーは別の処理で、YouTube更新により動作が変わります。他の広告ツールとの互換性は保証されません。YouTube・ReVanced・SponsorBlockとは提携していません。
 
-[ユーザースクリプト](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js) は **1.1.2**、拡張は **1.10.1** です。Tampermonkey / Violentmonkeyなどで導入できますが、新しい区間パネルやサイズ・開閉状態の保存など、拡張の全機能は含みません。Firefox/Safariの互換性は未検証です。両方を同時に実行しないでください。
+[ユーザースクリプト](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js) は **1.1.2**、拡張は **1.11.0** です。Tampermonkey / Violentmonkeyなどで導入できますが、新しい区間パネルやサイズ・開閉状態の保存など、拡張の全機能は含みません。Firefox/Safariの互換性は未検証です。両方を同時に実行しないでください。
 
 設定・ライブラリ・ブックマークはブラウザー内に保存します。区間取得時に動画IDを `sponsor.ajay.app` へ送信し、通常のネットワーク情報もサービスに届きます。クラウド同期はありません。バックアップには保存動画とメモが含まれます。
 

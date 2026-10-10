@@ -19,6 +19,9 @@
     hideComments: false,  // 댓글 숨기기 (몰입 모드)
     shotMode: 'download', // 스크린샷 저장 방식: download | clipboard | both
     hotkeys: { shot: 'Alt+S', comments: 'Alt+H', save: 'Alt+B' }, // 단축키 (팝업에서 변경 가능)
+    categoryModes: {},
+    channelRules: {},
+    localSegments: {},
     cats: {
       sponsor: true,
       intro: true,
@@ -34,6 +37,7 @@
   function saveCfg() { chrome.storage.local.set({ tp_cfg: cfg }).catch(() => {}); }
 
   const CAT_META = {
+    local: { labelKey: 'cat_local', color: '#92b9f7' },
     sponsor:        { labelKey: 'cat_sponsor',      color: '#00d400' },
     intro:          { labelKey: 'cat_intro',      color: '#00ffff' },
     outro:          { labelKey: 'cat_outro',    color: '#0202ed' },
@@ -93,6 +97,12 @@
   /* ================= 영상 변경 감지 ================= */
   function onVideoChange(vid) {
     currentVideoId = vid;
+    undoSkip = null; skippedExceptions = [];
+    clearTimeout(skipToastTimer);
+    document.querySelectorAll('.ytpc-skiptoast').forEach(el => el.remove());
+    document.querySelectorAll('.ytpc-local-form input').forEach(input => { input.value = ''; });
+    const localMessage = document.querySelector('.ytpc-local-error');
+    if (localMessage) localMessage.textContent = '';
     segments = [];
     clearMarkers();
     resetZoom(true);
@@ -108,7 +118,7 @@
 
   /* ================= SponsorBlock ================= */
   function loadSegments(vid) {
-    const cats = Object.keys(CAT_META);
+    const cats = Object.keys(CAT_META).filter(cat => cat !== 'local');
     if (!cats.length) { setStatus(''); return; }
     tpFetch({
       method: 'GET',
@@ -122,7 +132,7 @@
             const data = JSON.parse(res.responseText);
             segments = [];
             data.forEach(e => {
-              if (!CAT_META[e.category] || (e.actionType && e.actionType !== 'skip')) return;
+              if (!CAT_META[e.category] || e.category === 'local' || (e.actionType && e.actionType !== 'skip')) return;
               // 실제 API는 segment(단수, [start, end])로 옴. 혹시 모를 복수형도 허용.
               const list = Array.isArray(e.segment) ? [e.segment] : (e.segments || []);
               list.forEach(s => {
@@ -135,10 +145,10 @@
             console.log('[TubePilot] segments loaded:', segments.length,
               segments.map(s => s.cat + ':' + Math.round(s.start) + '-' + Math.round(s.end)).join(', '));
             if (cfg.sbMark) drawMarkers();
-            setStatus(segments.length ? T('st_loaded', { n: segments.length }) : T('st_empty'));
+            setStatus(allSegments().length ? T('st_loaded', { n: allSegments().length }) : T('st_empty'));
           } catch (e) { setStatus(T('st_parse_fail')); }
         } else if (res.status === 404) {
-          segments = []; clearMarkers(); setStatus(T('st_empty'));
+          segments = []; refreshSkipUI(); setStatus(localSegments().length ? T('st_loaded', { n: localSegments().length }) : T('st_empty'));
         } else {
           setStatus(T('st_fetch_fail', { status: res.status }));
         }
@@ -161,7 +171,7 @@
     if (!v || !bar || !v.duration || !isFinite(v.duration)) return;
     bar.style.position = 'relative'; // 마커 absolute 기준점 보장
     const dur = v.duration;
-    segments.forEach(s => {
+    allSegments().forEach(s => {
       const meta = CAT_META[s.cat] || { labelKey: null, color: '#ffffff' };
       const el = document.createElement('div');
       el.className = 'ytpc-marker';
@@ -182,16 +192,17 @@
     if (!host) return;
     const v = getVideo();
     const duration = v && Number.isFinite(v.duration) ? v.duration : 0;
-    const active = v && !isAdShowing() ? segments.findIndex(s => v.currentTime >= s.start && v.currentTime < s.end) : -1;
-    const signature = JSON.stringify([currentVideoId, segments, cfg.cats, cfg.sbSkip, duration, active]);
+    const reviewed = allSegments();
+    const active = v && !isAdShowing() ? reviewed.findIndex(s => v.currentTime >= s.start && v.currentTime < s.end) : -1;
+    const signature = JSON.stringify([currentVideoId, reviewed, cfg.cats, cfg.categoryModes, channelMode(), cfg.sbSkip, duration, active, isAdShowing()]);
     if (host.dataset.signature === signature) return;
     host.dataset.signature = signature;
     host.replaceChildren();
     const title = document.createElement('strong');
-    title.textContent = T('review_title') + ' · ' + segments.length;
+    title.textContent = T('review_title') + ' · ' + reviewed.length;
     host.appendChild(title);
     const source = document.createElement('p');
-    source.textContent = T('review_source');
+    source.textContent = T('review_source') + (localSegments().length ? ' · ' + T('local_hint') : '');
     host.appendChild(source);
     const timeline = document.createElement('div');
     timeline.className = 'ytpc-timeline';
@@ -199,7 +210,7 @@
     host.appendChild(timeline);
     const list = document.createElement('div');
     list.className = 'ytpc-segment-list';
-    segments.forEach((seg, index) => {
+    reviewed.forEach((seg, index) => {
       if (duration && seg.start >= duration) return;
       const end = duration ? Math.min(seg.end, duration) : seg.end;
       const label = T(CAT_META[seg.cat].labelKey);
@@ -211,15 +222,27 @@
       item.appendChild(text);
       const skip = document.createElement('button');
       skip.textContent = T('review_skip');
-      skip.disabled = !duration || isAdShowing();
+      skip.disabled = !duration || isAdShowing() || segmentMode(seg) === 'mark';
       skip.setAttribute('aria-label', label + ' ' + T('review_skip'));
       skip.addEventListener('click', () => {
         const video = getVideo();
         if (!video || isAdShowing() || !Number.isFinite(video.duration)) return;
-        video.currentTime = Math.min(end, video.duration);
-        setStatus(T('st_skipped', { label }));
+        if (segmentMode(seg) !== 'mark') performSegmentSkip(seg, false);
       });
       item.appendChild(skip);
+      const mode = document.createElement('small');
+      mode.textContent = T('mode_' + segmentMode(seg));
+      item.appendChild(mode);
+      if (seg.cat === 'local') {
+        const remove = document.createElement('button');
+        remove.textContent = T('local_delete');
+        remove.setAttribute('aria-label', T('local_delete') + ' ' + text.textContent);
+        remove.addEventListener('click', () => {
+          cfg.localSegments = Object.assign({}, cfg.localSegments, { [currentVideoId]: localSegments().filter(s => s.id !== seg.id) });
+          saveCfg(); refreshSkipUI();
+        });
+        item.appendChild(remove);
+      }
       list.appendChild(item);
       if (duration) {
         const mark = document.createElement('button');
@@ -243,18 +266,76 @@
     return m + ':' + String(s).padStart(2, '0');
   }
 
-  function handleSponsorSkip() {
-    if (!cfg.sbSkip || !segments.length || isAdShowing()) return;
+  let undoSkip = null;
+  let skippedExceptions = [];
+  function localSegments() {
+    const rows = cfg.localSegments && cfg.localSegments[currentVideoId];
+    return (Array.isArray(rows) ? rows : []).filter(s => s && typeof s.id === 'string' &&
+      Number.isFinite(s.start) && Number.isFinite(s.end) && s.start >= 0 && s.end > s.start)
+      .map(s => ({ id: s.id, start: s.start, end: s.end, cat: 'local' }));
+  }
+  function allSegments() { return segments.concat(localSegments()).sort((a, b) => a.start - b.start); }
+  function channelIdentity() {
+    const page = document.querySelector('ytd-watch-flexy[video-id]');
+    if (page && page.getAttribute('video-id') !== currentVideoId) return null;
+    const link = document.querySelector('ytd-watch-metadata #owner a[href]') ||
+      document.querySelector('ytd-channel-name#channel-name a[href]') || document.querySelector('#channel-name a[href]');
+    if (!link) return null;
+    try {
+      const url = new URL(link.getAttribute('href'), location.origin);
+      if (url.origin !== location.origin) return null;
+      const path = url.pathname.replace(/\/$/, '');
+      if (!/^\/(?:channel\/[\w-]+|@[\w.%-]+|c\/[\w.%-]+|user\/[\w.%-]+)$/.test(path)) return null;
+      return { id: path, name: link.textContent.trim() || path };
+    } catch (e) { return null; }
+  }
+  function channelMode() {
+    const channel = channelIdentity();
+    const mode = channel && cfg.channelRules && cfg.channelRules[channel.id];
+    return ['manual', 'mark'].includes(mode) ? mode : 'inherit';
+  }
+  function segmentMode(seg) {
+    let mode = cfg.categoryModes && cfg.categoryModes[seg.cat];
+    if (!['auto', 'manual', 'mark'].includes(mode)) mode = seg.cat === 'local' || cfg.cats[seg.cat] ? 'auto' : 'manual';
+    const channel = channelMode();
+    if (channel === 'mark') return 'mark';
+    return (channel === 'manual' || !cfg.sbSkip) && mode === 'auto' ? 'manual' : mode;
+  }
+  function refreshSkipUI() {
+    if (cfg.sbMark) drawMarkers(); else clearMarkers();
+    renderSegmentReview();
+  }
+  function performSegmentSkip(seg, automatic) {
     const v = getVideo();
-    if (!v || !isFinite(v.duration)) return;
-    const t = v.currentTime;
-    for (const s of segments) {
-      if (cfg.cats[s.cat] && t >= s.start && t < s.end - 0.05) {
-        v.currentTime = Math.min(s.end + 0.05, v.duration - 0.05);
-        const meta = CAT_META[s.cat] || {};
-        const catLabel = T(meta.labelKey || s.cat);
-        setStatus(T('st_skipped', { label: catLabel }));
-        showSkipToast(catLabel);
+    if (!v || !Number.isFinite(v.duration) || isAdShowing() || seg.start >= v.duration) return;
+    const end = Math.min(seg.end, v.duration);
+    const from = v.currentTime;
+    undoSkip = { videoId: currentVideoId, from, segment: seg, expires: Date.now() + 6000 };
+    v.currentTime = automatic ? Math.min(end + 0.05, v.duration) : end;
+    const label = T(CAT_META[seg.cat].labelKey);
+    setStatus(T('st_skipped', { label }));
+    showSkipToast(label, Math.max(0, Math.round(end - from)));
+  }
+  function undoSegmentSkip() {
+    const v = getVideo(), skip = undoSkip;
+    if (!v || !skip || skip.videoId !== currentVideoId || Date.now() > skip.expires || isAdShowing()) return;
+    // Suppress the whole returned range, including overlapping community/local segments, for this visit.
+    skippedExceptions.push({ start: skip.segment.start, end: skip.segment.end });
+    v.currentTime = skip.from;
+    undoSkip = null;
+    const toast = document.querySelector('.ytpc-skiptoast');
+    if (toast) toast.remove();
+    setStatus(T('st_undo'));
+  }
+  function handleSponsorSkip() {
+    if (!cfg.sbSkip || isAdShowing()) return;
+    if (Object.keys(cfg.channelRules || {}).length && !channelIdentity()) return;
+    const v = getVideo();
+    if (!v || !Number.isFinite(v.duration)) return;
+    for (const seg of allSegments()) {
+      if (segmentMode(seg) === 'auto' && v.currentTime >= seg.start && v.currentTime < seg.end - 0.05 &&
+          !skippedExceptions.some(range => seg.start < range.end && seg.end > range.start)) {
+        performSegmentSkip(seg, true);
         break;
       }
     }
@@ -342,19 +423,21 @@
 
   /* ================= 패널 위치/드래그 ================= */
   let skipToastTimer = null;
-  function showSkipToast(label) {
+  function showSkipToast(label, seconds) {
     const pl = getPlayer();
     if (!pl) return;
-    let t = pl.querySelector('.ytpc-skiptoast');
-    if (!t) {
-      t = document.createElement('div');
-      t.className = 'ytpc-skiptoast';
-      pl.appendChild(t);
-    }
-    t.textContent = T('toast_skipped', { label });
-    t.classList.add('ytpc-show');
+    let toast = pl.querySelector('.ytpc-skiptoast');
+    if (!toast) { toast = document.createElement('div'); toast.className = 'ytpc-skiptoast'; pl.appendChild(toast); }
+    toast.replaceChildren();
+    const message = document.createElement('span');
+    message.setAttribute('role', 'status');
+    message.textContent = T('toast_duration', { label, seconds });
+    const undo = document.createElement('button');
+    undo.textContent = T('skip_undo');
+    undo.addEventListener('click', event => { event.stopPropagation(); undoSegmentSkip(); });
+    toast.append(message, undo); toast.classList.add('ytpc-show');
     clearTimeout(skipToastTimer);
-    skipToastTimer = setTimeout(() => t.classList.remove('ytpc-show'), 1600);
+    skipToastTimer = setTimeout(() => { toast.remove(); undoSkip = null; }, 6000);
   }
   function applyCommentVisibility() {
     // CSS 클래스 토글 방식: 유튜브가 댓글 DOM을 다시 그려도 유지됨
@@ -543,6 +626,7 @@
       l.className = 'ytpc-row';
       const c = document.createElement('input');
       c.type = 'checkbox'; c.checked = !!cfg[key];
+      c.dataset.setting = key;
       c.addEventListener('change', () => { cfg[key] = c.checked; saveCfg(); });
       l.appendChild(c);
       l.appendChild(document.createTextNode(label));
@@ -565,11 +649,13 @@
     cats.className = 'ytpc-cats';
     Object.keys(CAT_META).forEach(k => {
       const l = document.createElement('label');
-      const c = document.createElement('input');
-      c.type = 'checkbox'; c.checked = !!cfg.cats[k];
+      const c = document.createElement('select');
+      c.dataset.category = k;
+      ['auto', 'manual', 'mark'].forEach(mode => { const option = document.createElement('option'); option.value = mode; option.textContent = T('mode_' + mode); c.appendChild(option); });
+      c.value = cfg.categoryModes && ['auto', 'manual', 'mark'].includes(cfg.categoryModes[k]) ? cfg.categoryModes[k] : (k === 'local' || cfg.cats[k] ? 'auto' : 'manual');
       c.addEventListener('change', () => {
-        cfg.cats[k] = c.checked; saveCfg();
-        if (currentVideoId) { segments = []; clearMarkers(); loadSegments(currentVideoId); }
+        cfg.categoryModes = Object.assign({}, cfg.categoryModes, { [k]: c.value });
+        cfg.cats[k] = c.value === 'auto'; saveCfg(); renderSegmentReview();
       });
       const dot = document.createElement('span');
       dot.className = 'ytpc-dot';
@@ -579,6 +665,7 @@
       cats.appendChild(l);
     });
     body.appendChild(cats);
+    buildSkipSettings(body);
 
     const zr = document.createElement('div');
     zr.className = 'ytpc-zoomrow';
@@ -687,6 +774,63 @@
     applyCommentVisibility();
   }
 
+  function buildSkipSettings(body) {
+    const channelRow = document.createElement('label');
+    channelRow.className = 'ytpc-row ytpc-channel';
+    const label = document.createElement('span'); label.textContent = T('channel_rule');
+    const select = document.createElement('select'); select.id = 'ytpc-channel-rule';
+    [['inherit', 'channel_inherit'], ['manual', 'mode_manual'], ['mark', 'mode_mark']].forEach(([value, key]) => {
+      const option = document.createElement('option'); option.value = value; option.textContent = T(key); select.appendChild(option);
+    });
+    select.addEventListener('change', () => {
+      const channel = channelIdentity(); if (!channel) return;
+      cfg.channelRules = Object.assign({}, cfg.channelRules);
+      if (select.value === 'inherit') delete cfg.channelRules[channel.id]; else cfg.channelRules[channel.id] = select.value;
+      saveCfg(); renderSegmentReview();
+    });
+    channelRow.append(label, select); body.appendChild(channelRow);
+    const form = document.createElement('form'); form.className = 'ytpc-local-form';
+    const heading = document.createElement('strong'); heading.textContent = T('local_title');
+    const hint = document.createElement('p'); hint.textContent = T('local_hint');
+    form.append(heading, hint);
+    ['start', 'end'].forEach(key => {
+      const row = document.createElement('label'); row.textContent = T('local_' + key);
+      const input = document.createElement('input'); input.id = 'ytpc-local-' + key; input.placeholder = key === 'start' ? '0:00' : '0:30'; input.required = true;
+      const current = document.createElement('button'); current.type = 'button'; current.textContent = T('local_current');
+      current.addEventListener('click', () => { const v = getVideo(); if (v && !isAdShowing()) input.value = String(Math.floor(v.currentTime * 100) / 100); });
+      row.append(input, current); form.appendChild(row);
+    });
+    const error = document.createElement('p'); error.setAttribute('role', 'status'); error.className = 'ytpc-local-error';
+    const save = document.createElement('button'); save.type = 'submit'; save.textContent = T('local_save');
+    form.append(save, error);
+    form.addEventListener('submit', event => {
+      event.preventDefault(); const v = getVideo();
+      const start = tpParseTime(form.querySelector('#ytpc-local-start').value), end = tpParseTime(form.querySelector('#ytpc-local-end').value);
+      if (!currentVideoId || !v || isAdShowing() || !Number.isFinite(v.duration) || !Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start || end > v.duration) {
+        error.textContent = T('local_invalid'); return;
+      }
+      const rows = localSegments();
+      if (!rows.some(s => s.start === start && s.end === end)) rows.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), start, end });
+      cfg.localSegments = Object.assign({}, cfg.localSegments, { [currentVideoId]: rows });
+      saveCfg(); refreshSkipUI(); error.textContent = T('local_saved');
+      form.querySelector('#ytpc-local-start').value = ''; form.querySelector('#ytpc-local-end').value = '';
+    });
+    body.appendChild(form); syncChannelControl();
+  }
+  function syncChannelControl() {
+    document.querySelectorAll('#ytpc-panel [data-category]').forEach(select => {
+      const cat = select.dataset.category;
+      const mode = cfg.categoryModes && cfg.categoryModes[cat];
+      select.value = ['auto', 'manual', 'mark'].includes(mode) ? mode : (cat === 'local' || cfg.cats[cat] ? 'auto' : 'manual');
+    });
+    document.querySelectorAll('#ytpc-panel [data-setting]').forEach(input => { input.checked = !!cfg[input.dataset.setting]; });
+    const select = document.getElementById('ytpc-channel-rule'); if (!select) return;
+    const channel = channelIdentity();
+    select.disabled = !channel; select.value = channelMode();
+    const label = select.parentElement.querySelector('span');
+    label.textContent = channel ? T('channel_rule') + ' · ' + channel.name : T('channel_unavailable');
+  }
+
   /* ================= 다시보기 라이브러리 ================= */
   function libLoad() { return library; }
   function libWrite(videos) {
@@ -724,6 +868,7 @@
       const n = Object.keys(data.library).length;
       if (!confirm(T('confirm_restore', { n }))) return;
       const newCfg = Object.assign({}, DEFAULTS, data.cfg || {});
+      newCfg.cats = Object.assign({}, DEFAULTS.cats, newCfg.cats || {});
       chrome.storage.local.set({ tp_cfg: newCfg }, () => {
         cfg = newCfg;
         libWrite(data.library);
@@ -1340,10 +1485,11 @@
     }
     // 메타데이터 로드 후 마킹이 안 그려졌으면 재시도
     const v = getVideo();
-    if (v && cfg.sbMark && segments.length && !document.querySelector('.ytpc-marker') &&
+    if (v && cfg.sbMark && allSegments().length && !document.querySelector('.ytpc-marker') &&
         v.duration && isFinite(v.duration)) {
       drawMarkers();
     }
+    syncChannelControl();
     handleAds();
     handleSponsorSkip();
     renderSegmentReview();
@@ -1404,6 +1550,7 @@
             cfg = Object.assign({}, DEFAULTS, changes.tp_cfg.newValue || {});
             cfg.cats = Object.assign({}, DEFAULTS.cats, cfg.cats || {});
             applyPanelDisplay();
+            refreshSkipUI();
             // 단축키가 바뀌면 힌트 문구 갱신을 위해 패널 리빌드
             if (JSON.stringify(cfg.hotkeys || {}) !== oldHk) {
               const p2 = document.getElementById('ytpc-panel');

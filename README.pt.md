@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.10.1-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.11.0-blue" alt="version">
   <img src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Brave-orange" alt="platform">
   <img src="https://img.shields.io/badge/languages-ko%20%7C%20en%20%7C%20ja%20%7C%20es%20%7C%20pt-purple" alt="languages">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
@@ -36,6 +36,10 @@ O TubePilot adiciona trechos, pulos e uma biblioteca local ao player original do
 
 | Recurso | Descrição |
 |---|---|
+| Desfazer pulo | O aviso permite voltar por seis segundos. O trecho e os trechos sobrepostos não serão pulados automaticamente nesta visita. |
+| Ações por categoria | Escolha automático, manual ou só marcar por categoria. O controle geral de pulo automático continua valendo. |
+| Regras por canal | Use ajustes gerais, manual ou só marcar no canal atual. O canal é identificado pelo link, não pelo nome. |
+| Meus trechos | Digite início/fim ou registre o tempo atual. Aplicam-se apenas ao vídeo, ficam neste navegador, podem ser excluídos da lista e fazem parte do backup JSON dos ajustes. Não são enviados ao SponsorBlock. |
 | Trechos | Marcadores, linha do tempo e lista com início/fim para patrocinadores, introduções, encerramentos, autopromoção, pedidos de interação e música fora do tema. Inclui pulo manual. |
 | Pulo automático | Ajuste geral e por categoria. Desativá-lo mantém os dados dos trechos visíveis. |
 | Painel | `＋ / −` abre/fecha; `↗ / ↙` alterna entre amplo e compacto. Salva o estado. Novas instalações começam fechadas abaixo do player. |
@@ -69,7 +73,7 @@ Antes de atualizar, exporte um backup pela biblioteca. Substitua os arquivos da 
 
 Os trechos vêm da comunidade pela [API do SponsorBlock](https://wiki.sponsor.ajay.app/w/API_Docs). O conteúdo não é analisado para descobrir anúncios não reportados. Ausência de dados e erros de consulta são estados separados. Anúncios do YouTube e patrocinadores dentro do vídeo usam tratamentos diferentes. Mudanças do YouTube podem afetar o funcionamento; a compatibilidade com outras ferramentas de anúncios não é garantida. Sem afiliação ao YouTube, ReVanced ou SponsorBlock.
 
-O [userscript](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js) **1.1.2** é mantido separadamente da extensão **1.10.1**. Instale com Tampermonkey/Violentmonkey. Ele não inclui o novo painel nem todos os recursos da extensão. Firefox/Safari não foram verificados. Não execute as duas edições ao mesmo tempo.
+O [userscript](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js) **1.1.2** é mantido separadamente da extensão **1.11.0**. Instale com Tampermonkey/Violentmonkey. Ele não inclui o novo painel nem todos os recursos da extensão. Firefox/Safari não foram verificados. Não execute as duas edições ao mesmo tempo.
 
 Ajustes, biblioteca e marcadores ficam no navegador. Consultas enviam o ID do vídeo a `sponsor.ajay.app`, que também recebe metadados normais de rede. Não há sincronização na nuvem. Backups exportados contêm vídeos e notas.
 

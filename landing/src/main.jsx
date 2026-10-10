@@ -459,7 +459,7 @@ function ProductDemo() {
             <div className={`segment-panel ${panelCollapsed ? "is-collapsed" : ""} ${panelWide ? "is-wide" : ""}`}>
               <div className="segment-panel-head">
                 <Logo small />
-                <span className="segment-panel-version">v1.10.1</span>
+                <span className="segment-panel-version">v1.11.0</span>
                 <div className="segment-panel-actions">
                   {!panelCollapsed && <button className="icon-button" aria-label={panelWide ? t("패널 작게 보기") : t("패널 넓게 보기")} onClick={() => setPanelWide(!panelWide)}>{panelWide ? <ArrowDownLeft size={15} /> : <ArrowUpRight size={15} />}</button>}
                   <button className="icon-button" aria-controls="demo-panel-content" aria-expanded={!panelCollapsed} aria-label={panelCollapsed ? t("패널 펼치기") : t("패널 접기")} onClick={() => setPanelCollapsed(!panelCollapsed)}>{panelCollapsed ? <Plus size={16} /> : <Minus size={16} />}</button>
@@ -877,6 +877,9 @@ function Features() {
           </FeatureCard>
         </div>
         <div className="extras reveal">
+          <span><RotateCcw size={17} /> {t("스킵 되돌리기")}</span>
+          <span><SlidersHorizontal size={17} /> {t("채널별·종류별 스킵 설정")}</span>
+          <span><Bookmark size={17} /> {t("내 스킵 구간 저장")}</span>
           <span>
             <SlidersHorizontal size={17} /> {t("패널 위치·투명도 조절")}
           </span>
@@ -918,7 +921,7 @@ function Installation() {
           <ArrowUpRight size={17} />
         </ButtonLink>
         <small className="install-note">
-          {t("무료 · v1.10.1 · main 브랜치 ZIP으로 수동 설치")}
+          {t("무료 · v1.11.0 · main 브랜치 ZIP으로 수동 설치")}
         </small>
         <p className="install-update">{t("업데이트 전 백업하고, 기존 폴더를 교체한 뒤 확장과 YouTube를 새로고침하세요.")}</p>
         <a
@@ -1158,7 +1161,7 @@ function App({ locale, onLocaleChange }) {
               target="_blank"
               rel="noreferrer"
             >
-              <span>NEW</span> {t("v1.10.1 · 시청을 가리지 않는 구간 패널")}{" "}
+              <span>NEW</span> {t("v1.11.0 · 스킵도 내 방식대로")}{" "}
               <ChevronRight size={14} />
             </a>
             <h1>

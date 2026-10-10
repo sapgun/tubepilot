@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.10.1-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.11.0-blue" alt="version">
   <img src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Brave-orange" alt="platform">
   <img src="https://img.shields.io/badge/languages-ko%20%7C%20en%20%7C%20ja%20%7C%20es%20%7C%20pt-purple" alt="languages">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
@@ -36,6 +36,10 @@ TubePilot adds a compact control panel to the original YouTube player on desktop
 
 | Feature | What it does |
 |---|---|
+| Undo skip | A six-second Undo notice returns to the previous position. That range and overlapping ranges are excluded from automatic skipping for this visit. |
+| Category actions | Choose automatic, manual or mark-only for each category. The global automatic-skip toggle still applies. |
+| Channel rules | Use global settings, manual skipping or mark-only for the current channel. Rules use the channel link, not its display name. |
+| My skip ranges | Enter start/end times or capture the current time. Ranges apply only to this video, stay in this browser, can be deleted from the segment list and are included in JSON settings backups. They are not submitted to SponsorBlock. |
 | Segment timeline | Colored progress-bar markers and a panel timeline for sponsors, intros, outros, self-promotion, interaction reminders and off-topic music. Lists start/end times with a manual skip button. |
 | Automatic segment skip | Enable automatic skipping globally and per category. Turning off automatic skipping keeps segment data visible. |
 | Compact panel | `＋ / −` expands or collapses; `↗ / ↙` switches wide/compact view. Size and collapsed state persist. New installations start collapsed below the player. |
@@ -69,7 +73,7 @@ To update, back up your data from the Library first, replace the files in your e
 
 Segments come from the [SponsorBlock community API](https://wiki.sponsor.ajay.app/w/API_Docs). TubePilot does not analyze video content to discover unreported ads. No segments can mean no community reports; loading failures are shown separately. YouTube-served ads and in-video sponsor segments use different handling. Ad removal is not guaranteed, and TubePilot is not affiliated with YouTube, ReVanced or SponsorBlock.
 
-The alternative [userscript](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js) is **1.1.2**, maintained separately from the **1.10.1** extension. Install it through a userscript manager such as Tampermonkey or Violentmonkey. It does not include the new segment panel, persistent panel sizing/collapse, or all extension features. Firefox/Safari support depends on the manager and browser; compatibility has not been verified here. Run one edition at a time.
+The alternative [userscript](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js) is **1.1.2**, maintained separately from the **1.11.0** extension. Install it through a userscript manager such as Tampermonkey or Violentmonkey. It does not include the new segment panel, persistent panel sizing/collapse, or all extension features. Firefox/Safari support depends on the manager and browser; compatibility has not been verified here. Run one edition at a time.
 
 ## Privacy and permissions
 

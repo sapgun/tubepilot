@@ -214,3 +214,24 @@ html.ytpc-capturing .ytp-caption-window-container { display: none !important; }
 #ytpc-panel:not(.ytpc-inline) .ytpc-body { max-height: min(65vh, 560px); overflow-y: auto; }
 #ytpc-panel.ytpc-inline:not(.ytpc-wide):not(.ytpc-hidden) { width: 340px; }
 #ytpc-panel .ytpc-brand { white-space: nowrap; }
+
+/* Per-category and local skip controls remain inside collapsed playback settings. */
+#ytpc-panel .ytpc-settings .ytpc-cats { grid-template-columns: 1fr; }
+#ytpc-panel .ytpc-cats label { display: flex; flex-wrap: wrap; }
+#ytpc-panel .ytpc-cats select { order: 3; margin-left: auto; }
+#ytpc-panel .ytpc-cats select, #ytpc-panel .ytpc-channel select { background: #161b24; color: #eef3fb; border: 1px solid #4b586c; border-radius: 6px; padding: 5px 8px; font: inherit; }
+#ytpc-panel label.ytpc-channel { align-items: stretch; white-space: normal; }
+#ytpc-panel .ytpc-channel { display: flex; flex-direction: column; align-items: stretch; gap: 6px; margin-top: 12px; }
+#ytpc-panel .ytpc-channel span { overflow-wrap: anywhere; }
+#ytpc-panel .ytpc-local-form { border-top: 1px solid #303540; margin-top: 12px; padding-top: 12px; }
+#ytpc-panel .ytpc-local-form p { color: #b6c2d3; font-size: 11px; line-height: 1.6; margin: 6px 0; }
+#ytpc-panel .ytpc-local-form label { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+#ytpc-panel .ytpc-local-form input { width: 64px; min-width: 0; flex: 1; background: #161b24; color: #eef3fb; border: 1px solid #4b586c; border-radius: 6px; padding: 6px; }
+#ytpc-panel .ytpc-local-form button { background: #303e54; color: #eef3fb; border: 0; border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+#ytpc-panel .ytpc-segment { flex-wrap: wrap; gap: 6px; }
+#ytpc-panel .ytpc-segment > span { min-width: 100px; flex: 1; }
+#ytpc-panel .ytpc-segment small { color: #b6c2d3; font-size: 10px; }
+#ytpc-panel select:focus-visible, #ytpc-panel input:focus-visible, .ytpc-skiptoast button:focus-visible { outline: 2px solid #92b9f7; outline-offset: 2px; }
+.ytpc-skiptoast { display: flex; align-items: center; gap: 12px; max-width: calc(100% - 24px); box-sizing: border-box; white-space: normal; pointer-events: none; }
+.ytpc-skiptoast.ytpc-show { pointer-events: auto; }
+.ytpc-skiptoast button { flex-shrink: 0; font: inherit; color: #e6f0ff; background: #303e54; border: 1px solid #61718a; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
