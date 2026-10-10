@@ -13,95 +13,76 @@
 </p>
 
 <p align="center">
-  <strong>YouTube en PC, como ReVanced.</strong><br>
+  <strong>Una forma más cómoda de ver YouTube.</strong><br>
   Salta los anuncios, omite los patrocinios y guarda videos con etiquetas para más tarde.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.8.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.10.1-blue" alt="version">
   <img src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Brave-orange" alt="platform">
   <img src="https://img.shields.io/badge/languages-ko%20%7C%20en%20%7C%20ja%20%7C%20es%20%7C%20pt-purple" alt="languages">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="prs welcome">
 </p>
 
+
 ---
 
-## ✨ Funciones
+## Un panel que deja espacio al vídeo
 
-| | Función | Descripción |
-|---|---|---|
-| ⏭ | **Salto automático de anuncios** | Hace clic en el botón de saltar al detectar anuncios pre-roll/mid-roll. Los anuncios no omitibles se pasan buscando el final + 16x de velocidad + silencio, y luego se restauran tu volumen/velocidad originales |
-| 🟩 | **Marcado + salto de SponsorBlock** | Los segmentos de patrocinador/intro/outro/autopromoción se muestran como marcadores de colores en la barra de progreso, con salto automático. Activación por categoría (usa la API pública de SponsorBlock) |
-| 🔍 | **Zoom y paneo de video** | Zoom de hasta 400% con los botones ＋/－, arrastra el video para moverlo con zoom |
-| 💬 | **Ocultar comentarios (modo enfoque)** | Oculta toda la sección de comentarios para concentrarte en el video |
-| 📚 | **Biblioteca para ver más tarde** | Guarda videos con etiquetas + palabras clave/notas. Extrae `#hashtags` de las descripciones, filtros por etiquetas + búsqueda unificada en título/canal/etiquetas/notas. Al reabrir un video guardado, un **banner de recuerdo** muestra sus etiquetas y notas para que recuerdes al instante por qué lo guardaste |
-| 💾 | **Respaldo y restauración** | Exporta tu configuración + biblioteca como JSON y restáuralas cuando quieras |
-| 📷 | **Captura de pantalla** | Guarda el fotograma actual como PNG (`Alt+S`), recortado al área del reproductor |
-| ⌨️ | **Atajos de teclado** | `Alt+S` captura · `Alt+H` mostrar/ocultar comentarios · `Alt+B` diálogo de guardar |
+TubePilot añade segmentos, saltos y una biblioteca local al reproductor original de YouTube en escritorio. No necesitas una cuenta de TubePilot.
 
-Todo se activa desde el panel 🎬 en la parte inferior derecha de las páginas de YouTube.
-**Arrastra el encabezado del panel para colocarlo donde quieras** (la posición se guarda, doble clic para restablecer).
-Fíjalo **debajo del reproductor** en los ajustes y seguirá los cambios de tamaño.
-**Haz clic en un marcador de color** de la barra de progreso para ir al inicio de ese segmento.
+## Funciones
 
-🌍 Interfaz disponible en **한국어 · English · 日本語 · Español · Português** — se detecta desde tu navegador y puedes cambiarla en el popup de la extensión.
+| Función | Descripción |
+|---|---|
+| Segmentos | Marcadores, línea de tiempo y lista con inicio/fin para patrocinios, intro, outro, autopromoción, llamadas a interactuar y música ajena al tema. Incluye salto manual. |
+| Salto automático | Configuración general y por categoría. Desactivarlo conserva la información de segmentos. |
+| Panel | `＋ / −` abre/cierra; `↗ / ↙` cambia entre vista amplia y compacta. Conserva el estado. Las instalaciones nuevas empiezan cerradas debajo del vídeo. |
+| Anuncios | Intenta pulsar el botón de salto, avanzar y acelerar anuncios detectados. Puede silenciarlos y restaurar el estado de silencio y la velocidad anteriores. No garantiza eliminarlos. |
+| Visualización | Zoom hasta 400%, desplazamiento al arrastrar y ocultación de comentarios. |
+| Biblioteca | Vídeos con etiquetas y notas, búsqueda, filtros y recordatorio al volver a abrirlos. |
+| Marcadores de intervalos | Guarda rangos con notas, salta a ellos y pausa al final. |
+| Capturas | PNG del área visible del reproductor: archivo, portapapeles o ambos. Recorta una captura de la pestaña; no extrae fotogramas directamente. |
+| Copias de seguridad | JSON con ajustes, biblioteca y marcadores. Restaurar sustituye ajustes y biblioteca; los marcadores incluidos también sustituyen los existentes. |
 
-## 📦 Instalación
+Interfaz en coreano, inglés, japonés, español y portugués. Cambia idioma, capturas y atajos en la ventana de la extensión.
 
-### A. Extensión del navegador (recomendado)
+## Instalación y actualización
 
-1. Clona este repo o descarga + descomprime `tubepilot-1.8.0.zip` desde la [última release](https://github.com/sapgun/tubepilot/releases)
-2. Ve a `chrome://extensions` → activa el **modo de desarrollador** (arriba a la derecha)
-3. Haz clic en **Cargar descomprimida** → selecciona la carpeta `extension/`
-4. Abre youtube.com → listo cuando aparezca el panel 🎬 abajo a la derecha
+1. Descarga y extrae el [ZIP de main](https://github.com/sapgun/tubepilot/archive/refs/heads/main.zip), o clona el repositorio.
+2. Abre `chrome://extensions` o `edge://extensions` y activa el modo de desarrollador.
+3. Elige **Cargar descomprimida** y selecciona `extension/`, la carpeta con `manifest.json`.
+4. Recarga YouTube y pulsa `＋` en el panel situado debajo del vídeo.
 
-> El icono de TubePilot en la barra controla la activación general y el idioma. Los ajustes detallados están en el panel 🎬 de las páginas de YouTube.
+Antes de actualizar, exporta una copia desde la biblioteca. Sustituye los archivos de la carpeta instalada, recarga la extensión y después YouTube. Evita copias duplicadas. El interruptor general se comprueba al cargar la página: recarga YouTube después de cambiarlo.
 
-### B. Userscript (alternativa)
+## Controles
 
-Los usuarios de Tampermonkey / Violentmonkey pueden usar `tubepilot.user.js` directamente.
-Abre el archivo en tu navegador tras instalar un gestor de userscripts y confirma la instalación.
-(`@updateURL` busca nuevas versiones automáticamente)
+- Los ajustes de reproducción incluyen categorías, zoom, posición, opacidad y acciones de guardar/biblioteca/captura/marcadores. Elige **debajo del reproductor** para no tapar el vídeo.
+- Vista compacta: 340px. Vista amplia: ancho disponible debajo del vídeo o 540px si flota, limitado al ancho de pantalla.
+- En modo flotante, arrastra la cabecera; doble clic restablece su posición y un clic abre/cierra. El panel se oculta en pantalla completa.
+- Los marcadores llevan al inicio; **Saltar** lleva al final. El salto manual no está disponible durante anuncios detectados de YouTube.
+- `Alt+S`: captura; `Alt+H`: comentarios; `Alt+B`: guardar. Son configurables.
 
-## 🚀 Uso
+## Datos, límites y privacidad
 
-- **Salto de anuncios**: déjalo activado. Los anuncios se saltan solos.
-- **Segmentos de patrocinador**: revisa los marcadores de colores en la barra de progreso; desactiva las categorías que no quieras en el panel.
-- **Zoom**: botones ＋/－ del panel; arrastra el video para moverlo con zoom superior al 100%.
-- **Guardar para más tarde**: botón **Guardar** del panel → añade etiquetas y notas. Los `#hashtags` de la descripción se añaden con un clic.
-- **Biblioteca**: botón **Lista** del panel → filtra por etiquetas o escribe en el buscador.
+Los segmentos proceden de la comunidad mediante la [API de SponsorBlock](https://wiki.sponsor.ajay.app/w/API_Docs). No se analiza el contenido para descubrir anuncios sin reportar. La ausencia de datos y los errores de consulta se muestran por separado. Los anuncios de YouTube y los patrocinios dentro del vídeo tienen tratamientos distintos. Los cambios de YouTube pueden afectar al funcionamiento; no se garantiza compatibilidad con otras herramientas de anuncios. Sin afiliación a YouTube, ReVanced o SponsorBlock.
 
-## 🔒 Privacidad
+El [userscript](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js) **1.1.2** se mantiene separado de la extensión **1.10.1**. Se instala con Tampermonkey/Violentmonkey y no incluye el nuevo panel ni todas las funciones de la extensión. Firefox/Safari no están verificados. No ejecutes ambas ediciones a la vez.
 
-- La configuración y la biblioteca se guardan **solo en el almacenamiento local de tu navegador**. No se envían a ningún servidor.
-- Al buscar segmentos de patrocinador, el ID del video se envía a la API pública de SponsorBlock (`sponsor.ajay.app`). No se transmite ningún otro dato personal.
+Los ajustes, biblioteca y marcadores se guardan localmente. Las consultas envían el ID del vídeo a `sponsor.ajay.app`, que también recibe metadatos normales de red. No hay sincronización en la nube. Las copias exportadas incluyen vídeos y notas.
 
-## ❓ FAQ
+Permisos: `storage` para datos locales; `activeTab` para capturas de pestaña; `clipboardWrite` para copiar imágenes; `downloads` para guardarlas; `https://sponsor.ajay.app/*` para obtener segmentos. Las capturas pueden requerir una acción del usuario, como pulsar el icono de la extensión.
 
-**¿Puedo usarlo con uBlock Origin?**
-Sí. TubePilot salta a nivel de reproductor en lugar de bloquear red, así que no hay conflicto.
+## Ayuda y contribuciones
 
-**No aparecen los marcadores de segmentos.**
-Los datos de SponsorBlock los aporta la comunidad, así que algunos videos no tienen información de segmentos.
+Si falta el panel, activa la extensión, recarga y revisa debajo del vídeo o la posición guardada. Si faltan marcadores, revisa los ajustes, metadatos y estado de consulta. Para capturas, deja visible el reproductor y pulsa el icono si hace falta. [Informa de problemas](https://github.com/sapgun/tubepilot/issues) con versiones, pasos y URL del vídeo, sin datos privados.
 
-**¿Funciona en Safari / Firefox?**
-Sí, con la versión userscript (`tubepilot.user.js`).
+```sh
+cd extension/test
+npm install
+npm test
+```
 
-**¿Y si una actualización de YouTube lo rompe?**
-Los cambios en el DOM de YouTube pueden romper funciones. Por favor [abre un issue](https://github.com/sapgun/tubepilot/issues).
-
-## 🗺 Hoja de ruta
-
-- [ ] Publicación en Chrome Web Store
-- [ ] Atajos de teclado
-- [ ] Notas con marca de tiempo al guardar
-
-## 🤝 Contribuir
-
-Reportes de errores y sugerencias en [issues](https://github.com/sapgun/tubepilot/issues); código vía PR.
-Antes de un PR, ejecuta `cd extension/test && npm install && npm test`.
-
-## 📄 Licencia
-
-MIT — ver [LICENSE](LICENSE).
+Las pruebas verifican funciones, ajustes y traducciones en un navegador simulado, no el éxito de saltar anuncios reales. Comprueba reproducción, pantalla completa, apertura/cierre y actualizaciones en el navegador de destino. [Historial](CHANGELOG.md) · [Licencia MIT](LICENSE)
