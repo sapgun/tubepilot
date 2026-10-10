@@ -1,5 +1,8 @@
 // Source language: Korean. Columns: English, Japanese, Portuguese, Spanish.
 export const messages = {
+"TubePilot 후원": ["Support TubePilot", "TubePilotを支援", "Apoie o TubePilot", "Apoya TubePilot"],
+"더 좋은 TubePilot을 함께 만들어 주세요.": ["Help make TubePilot even better.", "より良いTubePilotを、一緒に。", "Ajude a tornar o TubePilot ainda melhor.", "Ayuda a mejorar TubePilot."],
+"작은 후원이 무료 도구의 개발과 개선에 힘이 됩니다.": ["A little support helps us build and improve this free tool.", "小さな支援が、無料ツールの開発と改善を支えます。", "Uma pequena contribuição ajuda a desenvolver e melhorar esta ferramenta gratuita.", "Una pequeña contribución ayuda a desarrollar y mejorar esta herramienta gratuita."],
 "TubePilot의 로컬 데이터 저장, SponsorBlock 조회, 백업과 삭제에 관한 개인정보처리방침.": ["How TubePilot handles local data, SponsorBlock requests, backups and deletion.", "TubePilotのローカル保存、SponsorBlock照会、バックアップと削除について。", "Como o TubePilot trata dados locais, consultas ao SponsorBlock, backups e exclusão.", "Cómo TubePilot trata datos locales, consultas a SponsorBlock, copias y eliminación."],
 
 "−로 접어도 구간 스킵은 계속돼요.": ["Segment skipping continues with the panel collapsed.", "閉じても区間スキップは続きます。", "Os pulos continuam com o painel fechado.", "Los saltos continúan con el panel cerrado."],

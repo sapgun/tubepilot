@@ -1140,6 +1140,15 @@ function App({ locale, onLocaleChange }) {
         </div>
       </header>
       <main id="main">
+        <aside className="support-banner" aria-label={t("TubePilot 후원") }>
+          <div className="container support-banner-inner">
+            <div className="support-banner-copy">
+              <span className="support-banner-icon"><Coffee size={20} aria-hidden="true" /></span>
+              <div><strong>{t("더 좋은 TubePilot을 함께 만들어 주세요.")}</strong><p>{t("작은 후원이 무료 도구의 개발과 개선에 힘이 됩니다.")}</p></div>
+            </div>
+            <a href="https://ko-fi.com/sapgun" target="_blank" rel="noreferrer">{t("커피 한 잔 후원하기")} <ArrowUpRight size={16} aria-hidden="true" /></a>
+          </div>
+        </aside>
         <div className="hero-area">
           <Ambient />
           <section className="hero container">

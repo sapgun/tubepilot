@@ -95,6 +95,20 @@ summary:focus-visible {
   backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--line);
 }
+.support-banner { background: #1c2619; border-bottom: 1px solid #91b85735; }
+.support-banner-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 18px; }
+.support-banner-copy { display: flex; align-items: center; gap: 14px; }
+.support-banner-icon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 auto; border-radius: 12px; background: #91b85716; color: #c2dc99; }
+.support-banner-copy strong { display: block; font-size: 14px; font-weight: 650; color: #edf4e5; }
+.support-banner-copy p { margin: 5px 0 0; font-size: 12px; line-height: 1.6; color: #b6c4aa; }
+.support-banner-inner > a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex-shrink: 0; padding: 11px 17px; border: 1px solid #b6d38e70; border-radius: 8px; background: #c2dc99; color: #192313; font-size: 13px; font-weight: 700; transition: background .2s; }
+.support-banner-inner > a:hover { background: #d3e9b4; }
+@media (max-width: 600px) {
+  .support-banner-inner { align-items: stretch; flex-direction: column; gap: 12px; padding-block: 16px; }
+  .support-banner-copy { align-items: flex-start; gap: 10px; }
+  .support-banner-copy strong { font-size: 13px; line-height: 1.6; }
+  .support-banner-inner > a { align-self: flex-start; margin-left: 52px; }
+}
 .nav-inner {
   height: 100%;
   display: flex;
