@@ -1341,7 +1341,7 @@ function App({ locale, onLocaleChange }) {
             <div>
               <span>{t("PRODUCT")}</span>
               <a href="#features">{t("기능 소개")}</a>
-              <a href={DOWNLOAD} target="_blank" rel="noreferrer">
+              <a href={`${REPO}/blob/main/CHANGELOG.md`} target="_blank" rel="noreferrer">
                 {t("릴리즈 노트")} <ArrowUpRight size={12} />
               </a>
               <a href={`/privacy.html?lang=${localeForLink()}`}>
@@ -1465,7 +1465,8 @@ function PrivacyPage({ locale, onLocaleChange }) {
           <LanguageSelect locale={locale} onChange={onLocaleChange} />
         </div>
       </header>
-      <main className="privacy-document container">
+      <a className="skip-link" href="#main">{t("본문으로 바로 가기")}</a>
+      <main id="main" className="privacy-document container">
         <a className="text-link" href={`/?lang=${locale}`}>
           ← {t("홈으로 돌아가기")}
         </a>
@@ -1503,9 +1504,21 @@ function Root() {
       ? `TubePilot — ${t("개인정보처리방침")}`
       : `TubePilot — ${t("시청의 주도권을,")} ${t("당신에게.")}`;
     document.title = title;
-    const description = t(
+    const description = isPrivacy ? t("TubePilot의 로컬 데이터 저장, SponsorBlock 조회, 백업과 삭제에 관한 개인정보처리방침.") : t(
       "스킵부터 확대, 캡처, 다시보기까지. PC YouTube를 내 방식대로.",
     );
+    const canonical = `https://tubepilot.trenchclub.dev${isPrivacy ? '/privacy.html' : '/'}${locale === 'ko' ? '' : `?lang=${locale}`}`;
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonical);
+    document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonical);
+    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', title);
+    document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', description);
+    const schema = document.getElementById('site-schema');
+    if (schema) {
+      const data = JSON.parse(schema.textContent);
+      if (data['@type'] === 'WebPage') Object.assign(data, { name: title, description, url: canonical, inLanguage: locale });
+      else data['@graph'].filter(item => item['@type'] === 'SoftwareApplication').forEach(item => Object.assign(item, { description, url: canonical }));
+      schema.textContent = JSON.stringify(data);
+    }
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute("content", description);

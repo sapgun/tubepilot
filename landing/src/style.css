@@ -3312,3 +3312,15 @@ html[lang="ja"] .feature-card h3 {
 .panel-demo-hint { margin: 9px 12px 15px; color: #96ac9d; font-size: 10px; }
 .install-update { max-width: 360px; font-size: 12px !important; line-height: 1.7; color: #bed0c2; }
 @media (max-width: 480px) { .segment-panel-summary { flex-wrap: wrap; } .segment-panel-row { gap: 7px; flex-wrap: wrap; } .segment-panel-row span { font-size: 10px; } }
+
+/* Readable secondary text on both light and dark sections. */
+.section-heading .eyebrow, .privacy-inner .eyebrow { color: #52633f; }
+.section-heading h2 span { color: #69765c; }
+.section-heading > p, .extras, .privacy-inner > div > p, .privacy-inner small, .privacy-meta, .privacy-meta a { color: #56634e; }
+.orbit-label { color: #546b40; }
+.faq-number { color: #8ca07b; }
+.footer-brand > p, .footer-links > div > span, .footer-bottom { color: #91a386; }
+.footer-brand > p, .footer-links > div > span, .footer-bottom { font-size: 11px; }
+input:focus-visible, select:focus-visible { outline: 2px solid #91b857; outline-offset: 4px; }
+
+.privacy-inner p:not(.eyebrow), .privacy-meta > span { color: #56634e; }

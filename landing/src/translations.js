@@ -1,5 +1,7 @@
 // Source language: Korean. Columns: English, Japanese, Portuguese, Spanish.
 export const messages = {
+"TubePilot의 로컬 데이터 저장, SponsorBlock 조회, 백업과 삭제에 관한 개인정보처리방침.": ["How TubePilot handles local data, SponsorBlock requests, backups and deletion.", "TubePilotのローカル保存、SponsorBlock照会、バックアップと削除について。", "Como o TubePilot trata dados locais, consultas ao SponsorBlock, backups e exclusão.", "Cómo TubePilot trata datos locales, consultas a SponsorBlock, copias y eliminación."],
+
 "−로 접어도 구간 스킵은 계속돼요.": ["Segment skipping continues with the panel collapsed.", "閉じても区間スキップは続きます。", "Os pulos continuam com o painel fechado.", "Los saltos continúan con el panel cerrado."],
 "패널 작게 보기": ["Compact panel", "パネルを小さく", "Painel compacto", "Panel compacto"],
 "패널 넓게 보기": ["Wide panel", "パネルを広く", "Painel amplo", "Panel amplio"],
