@@ -20,7 +20,7 @@ tubepilot/
 ## Vercel
 
 - Custom domain: https://tubepilot.trenchclub.dev/
-- Fallback URL: https://tubepilot-rho.vercel.app/
+- Legacy URL: https://tubepilot-rho.vercel.app/ → custom domain (308 redirect)
 - Vercel project: `tubepilot` (`sapgun-s-projects`)
 - Root Directory: 저장소 루트 (`.` 또는 빈 값)
 - 설정 파일: 루트 `vercel.json`
@@ -73,3 +73,7 @@ Vercel has the subdomain assigned to the TubePilot project. The authoritative pr
 This target is the value returned for this project on 2026-10-10. Re-check Vercel before using it for a different project. Keep the apex, www, MX and other subdomain records intact.
 
 After saving in Cloudflare, run `vercel domains verify tubepilot.trenchclub.dev --scope sapgun-s-projects` and verify HTTPS for `/`, `/privacy.html`, `/robots.txt`, `/sitemap.xml` and the social image. Update README/store URLs and enable the old-domain redirect only after the custom hostname serves the tested production build.
+
+### Activation verified — 2026-10-10
+
+Cloudflare CNAME and Vercel verification succeeded. HTTPS certificate was issued with automatic renewal. The custom hostname passed the desktop and 320px/390px five-language browser checks. The legacy hostname now redirects to the custom hostname with HTTP 308. README and store-listing URLs use the custom hostname.

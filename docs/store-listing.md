@@ -23,7 +23,7 @@ PC 유튜브 파워팩: 영상 광고 자동 스킵, SponsorBlock 구간 마킹�
 🔒 프라이버시
 • 설정과 라이브러리는 브라우저 로컬에만 저장됩니다
 • 외부 전송은 SponsorBlock 구간 조회를 위한 영상 ID뿐입니다
-• 개인정보처리방침: https://tubepilot-rho.vercel.app/privacy.html
+• 개인정보처리방침: https://tubepilot.trenchclub.dev/privacy.html
 
 ※ SponsorBlock 구간 데이터는 커뮤니티 기여 기반이라 모든 영상에 있지는 않습니다.
 ```
@@ -55,7 +55,7 @@ PC 유튜브 파워팩: 영상 광고 자동 스킵, SponsorBlock 구간 마킹�
 - 수집 데이터: 시청 중인 YouTube 영상 ID → `sponsor.ajay.app` 전송 (스폰서 구간 조회 목적)
 - 그 외 개인 데이터 수집·전송 없음
 - 설정/라이브러리는 `chrome.storage.local`에만 저장
-- 개인정보처리방침 URL: `https://tubepilot-rho.vercel.app/privacy.html` (Vercel 배포 정상화 후 확인)
+- 개인정보처리방침 URL: `https://tubepilot.trenchclub.dev/privacy.html` (Vercel 배포 정상화 후 확인)
 
 ## 7. 등록 절차
 1. [Chrome Web Store 개발자 대시보드](https://chrome.google.com/webstore/devconsole) 가입 ($5 일회성)
