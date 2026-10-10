@@ -82,9 +82,13 @@ for (const { code: lang } of languages) {
     const directory = new URL(`locales/${lang}/`, dist);
     fs.mkdirSync(directory, { recursive: true });
     fs.writeFileSync(new URL(file, directory), html);
-    if (lang === 'ko') fs.writeFileSync(new URL(file, dist), html);
+
     allUrls.push(canonical);
   }
 }
 fs.writeFileSync(new URL('sitemap.xml', dist), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${allUrls.map(u => `  <url><loc>${escape(u)}</loc></url>`).join('\n')}\n</urlset>\n`);
 console.log('Generated static social/search metadata and no-JavaScript installation guidance for 5 languages × 2 pages.');
+
+// Public routes are rewritten before serving localized documents.
+for (const file of ['index.html', 'privacy.html']) fs.unlinkSync(new URL(file, dist));
+

@@ -114,6 +114,14 @@
         }
       ],
       "destination": "/locales/es/privacy.html"
+    },
+    {
+      "source": "/",
+      "destination": "/locales/ko/index.html"
+    },
+    {
+      "source": "/privacy.html",
+      "destination": "/locales/ko/privacy.html"
     }
   ],
   "headers": [
