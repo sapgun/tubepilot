@@ -77,7 +77,7 @@ for (const { code: lang } of languages) {
       ['3. 이 웹사이트의 데이터', '랜딩페이지는 언어 선택을 브라우저에 저장합니다. 데모 상태는 페이지를 새로고침하면 초기화됩니다. 분석·광고 추적 스크립트는 포함하지 않습니다. 외부 링크를 열면 해당 서비스의 정책이 적용됩니다.'],
       ['4. 백업과 삭제', '확장을 삭제하면 해당 확장의 로컬 데이터도 삭제됩니다. 필요한 데이터는 삭제 전에 JSON으로 백업하세요. 내려받은 백업 파일은 사용자가 직접 관리합니다. 사이트의 언어 설정은 브라우저 사이트 데이터에서 삭제할 수 있습니다.'],
       ['5. 문의', '개인정보 관련 문의는 GitHub Issues 또는 비즈니스 이메일로 연락해 주세요.'],
-    ].map(([heading, text]) => `<section><h2>${escape(translate(heading, lang))}</h2><p>${escape(translate(text, lang))}</p></section>`).join('') : '';
+    ].map(([heading, text]) => `<section><h2>${escape(translate(heading, lang))}</h2><p>${escape(translate(text, lang))}${heading === '2. 브라우저에 저장되는 정보' ? ' ' + escape(translate("채널별 설정, 직접 지정한 스킵 구간, 구간 반복 옵션, 시점 메모와 저장한 영상의 시청 위치도 브라우저에 보관합니다. 저장하지 않은 영상의 시청 기록은 만들지 않습니다.", lang)) : ''}</p></section>`).join('') : '';
     html = html.replace('</body>',  `<noscript><main style="max-width:720px;margin:48px auto;padding:24px;font-family:system-ui;line-height:1.8"><h1>${escape(title)}</h1><p>${escape(description)}</p><p>${escape(noScript[lang])}</p>${privacySections}<p><a href="${repo}/archive/refs/heads/main.zip">${escape(translate('최신 버전 다운로드', lang))}</a> · <a href="${repo}">GitHub</a> · <a href="${urlFor('/privacy.html', lang)}">${escape(translate('개인정보처리방침', lang))}</a></p></main></noscript>\n</body>`);
     const directory = new URL(`locales/${lang}/`, dist);
     fs.mkdirSync(directory, { recursive: true });

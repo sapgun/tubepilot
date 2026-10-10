@@ -235,3 +235,25 @@ html.ytpc-capturing .ytp-caption-window-container { display: none !important; }
 .ytpc-skiptoast { display: flex; align-items: center; gap: 12px; max-width: calc(100% - 24px); box-sizing: border-box; white-space: normal; pointer-events: none; }
 .ytpc-skiptoast.ytpc-show { pointer-events: auto; }
 .ytpc-skiptoast button { flex-shrink: 0; font: inherit; color: #e6f0ff; background: #303e54; border: 1px solid #61718a; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+
+/* Study controls and independent focus choices. */
+#ytpc-panel .ytpc-focus-settings { border: 1px solid #303540; border-radius: 8px; padding: 7px 10px; margin: 10px 0; }
+#ytpc-panel.ytpc-inline .ytpc-focus-settings label.ytpc-row { white-space: normal; align-items: flex-start; }
+#ytpc-panel .ytpc-focus-settings input { flex-shrink: 0; }
+#ytpc-panel .ytpc-settings .ytpc-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#ytpc-panel .ytpc-actions button:last-child { grid-column: 1 / -1; }
+#ytpc-panel .ytpc-study-controls { display: flex; align-items: center; gap: 8px; margin: 10px 0; color: #c9dcff; font-size: 11px; }
+#ytpc-panel .ytpc-study-controls[hidden] { display: none; }
+#ytpc-panel .ytpc-study-controls span { flex: 1; }
+#ytpc-panel .ytpc-study-controls button { background: #303e54; color: #eef3fb; border: 0; border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+#ytpc-bm .ytpc-loop-options { display: flex; gap: 12px; margin-top: 12px; }
+#ytpc-bm .ytpc-loop-options[hidden], #ytpc-bm .ytpc-bm-timerow[hidden] { display: none; }
+#ytpc-bm .ytpc-loop-options label { display: flex; flex: 1; flex-direction: column; gap: 6px; color: #bac8db; font-size: 12px; }
+#ytpc-bm select { border: 1px solid #4b586c; border-radius: 6px; padding: 7px 10px; color: #eef3fb; background: #1c2430; }
+#ytpc-bm { max-height: 88vh; overflow-y: auto; }
+#ytpc-bm .ytpc-bm-timerow input { min-width: 0; }
+.ytpc-bmrow { flex-wrap: wrap; }
+.ytpc-bmrow-actions { flex-wrap: wrap; }
+#ytpc-recall .ytpc-recall-btns { flex-wrap: wrap; }
+#ytpc-recall [data-a=resume] { color: #dceaff; border-color: #7998c4; background: #283b56; }
+#ytpc-bm input:focus-visible, #ytpc-bm select:focus-visible, #ytpc-bm button:focus-visible, #ytpc-recall button:focus-visible { outline: 2px solid #92b9f7; outline-offset: 2px; }

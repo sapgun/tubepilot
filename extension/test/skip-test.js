@@ -11,10 +11,11 @@ async function fixture(store = {}) {
   store.tp_lang = 'en';
   w.chrome = { storage: { local: {
     get: async keys => Object.fromEntries(keys.map(k => [k, store[k]])),
-    set: async obj => {
+    set: async (obj, callback) => {
       const changes = Object.fromEntries(Object.entries(obj).map(([k, value]) => [k, { newValue: value }]));
       Object.assign(store, JSON.parse(JSON.stringify(obj)));
       listeners.forEach(fn => fn(changes, 'local'));
+      if (typeof callback === 'function') callback();
     },
   }, onChanged: { addListener: fn => listeners.push(fn) } }, runtime: { getManifest: () => ({ version: '1.11.0' }) } };
   let fetchStatus = 200;
@@ -34,7 +35,7 @@ async function fixture(store = {}) {
   };
   return { dom, w, doc, video, store, update, mode, channel, sponsor, add, setStatus: status => { fetchStatus = status; } };
 }
-(async () => {
+if (require.main === module) (async () => {
   const f = await fixture({ tp_cfg: { sbSkip: true, cats: { sponsor: true }, panelCollapsed: false } });
   const { w, doc, video, store } = f;
   video.currentTime = 12; await sleep(350);
@@ -120,3 +121,4 @@ async function fixture(store = {}) {
   r.dom.window.close();
   console.log('PASS: undo and overlapping ranges; category modes; channel rules; private range validation/ads/dedup/delete; SPA isolation; empty API; persistent reload.');
 })().catch(error => { console.error(error); process.exit(1); });
+module.exports = { fixture, sleep };

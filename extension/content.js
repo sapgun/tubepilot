@@ -16,6 +16,9 @@
     panelMode: 'below',  // corner(우측 하단) | player(플레이어 위) | below(플레이어 아래 고정)
     panelPos: null,       // {left, top} 수동 드래그 위치 (있으면 모드보다 우선)
     opacity: 100,         // 패널 투명도 (%)
+    hideRecommendations: false,
+    hideLiveChat: false,
+    hideEndScreens: false,
     hideComments: false,  // 댓글 숨기기 (몰입 모드)
     shotMode: 'download', // 스크린샷 저장 방식: download | clipboard | both
     hotkeys: { shot: 'Alt+S', comments: 'Alt+H', save: 'Alt+B' }, // 단축키 (팝업에서 변경 가능)
@@ -65,6 +68,10 @@
     const p = getPlayer();
     return !!(p && p.classList.contains('ad-showing'));
   }
+  function currentPageMatchesVideo() {
+    const page = document.querySelector('ytd-watch-flexy[video-id]');
+    return !page || page.getAttribute('video-id') === currentVideoId;
+  }
 
   // MV3: GM_xmlhttpRequest 대체. sponsor.ajay.app는 host_permissions에 등록됨.
   function tpFetch(opts) {
@@ -91,12 +98,20 @@
   let zoom = { s: 1, x: 0, y: 0 };
   let adState = null;          // { muted, rate } 광고 시작 전 상태
   let statusEl = null, zoomLbl = null;
+  let playbackSettingsOpen = false, focusSettingsOpen = false;
 
   function setStatus(t) { if (statusEl) statusEl.textContent = t; renderSegmentReview(); }
 
   /* ================= 영상 변경 감지 ================= */
   function onVideoChange(vid) {
+    flushWatchPosition();
+    stopStudyPlayback();
+    watchSample = null; lastWatchWrite = 0;
     currentVideoId = vid;
+    const savedVideo = library[vid];
+    resumeOffer = savedVideo && Number.isFinite(savedVideo.lastPosition) && savedVideo.lastPosition > 3 ? { videoId: vid, position: savedVideo.lastPosition } : null;
+    closeBookmarkDialog();
+    readPendingPlayback(vid);
     undoSkip = null; skippedExceptions = [];
     clearTimeout(skipToastTimer);
     document.querySelectorAll('.ytpc-skiptoast').forEach(el => el.remove());
@@ -278,7 +293,7 @@
   function channelIdentity() {
     const page = document.querySelector('ytd-watch-flexy[video-id]');
     if (page && page.getAttribute('video-id') !== currentVideoId) return null;
-    const link = document.querySelector('ytd-watch-metadata #owner a[href]') ||
+    const link = document.querySelector('ytd-watch-metadata #owner #channel-name a[href]') || document.querySelector('ytd-watch-metadata #owner a[href]') ||
       document.querySelector('ytd-channel-name#channel-name a[href]') || document.querySelector('#channel-name a[href]');
     if (!link) return null;
     try {
@@ -328,7 +343,7 @@
     setStatus(T('st_undo'));
   }
   function handleSponsorSkip() {
-    if (!cfg.sbSkip || isAdShowing()) return;
+    if (!cfg.sbSkip || isAdShowing() || (bmStopAt && bmStopAt.videoId === currentVideoId)) return;
     if (Object.keys(cfg.channelRules || {}).length && !channelIdentity()) return;
     const v = getVideo();
     if (!v || !Number.isFinite(v.duration)) return;
@@ -445,10 +460,16 @@
     if (!st) {
       st = document.createElement('style');
       st.id = 'ytpc-nocomments-style';
-      st.textContent = 'html.ytpc-nocomments #comments, html.ytpc-nocomments ytd-comments { display: none !important; }';
+      st.textContent = 'html.ytpc-nocomments #comments, html.ytpc-nocomments ytd-comments { display: none !important; }' +
+        'html.ytpc-hide-recommendations ytd-watch-next-secondary-results-renderer, html.ytpc-hide-recommendations ytd-watch-flexy #related { display: none !important; }' +
+        'html.ytpc-hide-chat ytd-live-chat-frame, html.ytpc-hide-chat ytd-watch-flexy #chat-container, html.ytpc-hide-chat ytd-watch-flexy #chat { display: none !important; }' +
+        'html.ytpc-hide-ends #movie_player .ytp-endscreen-content, html.ytpc-hide-ends #movie_player .ytp-ce-element, html.ytpc-hide-ends #movie_player .ytp-videowall-still { display: none !important; }';
       (document.head || document.documentElement).appendChild(st);
     }
     document.documentElement.classList.toggle('ytpc-nocomments', !!cfg.hideComments);
+    document.documentElement.classList.toggle('ytpc-hide-recommendations', !!cfg.hideRecommendations);
+    document.documentElement.classList.toggle('ytpc-hide-chat', !!cfg.hideLiveChat);
+    document.documentElement.classList.toggle('ytpc-hide-ends', !!cfg.hideEndScreens);
   }
   function belowAnchor() {
     // 플레이어 바로 아래 = 영상 제목/설명 영역 앞
@@ -634,9 +655,14 @@
     }
     body.appendChild(row(T('row_adskip'), 'adSkip'));
     body.appendChild(row(T('row_admute'), 'adMute'));
-    const cmtRow = row(T('row_hide_comments'), 'hideComments');
-    cmtRow.querySelector('input').addEventListener('change', applyCommentVisibility);
-    body.appendChild(cmtRow);
+    const focus = document.createElement('details'); focus.className = 'ytpc-focus-settings';
+    focus.open = focusSettingsOpen;
+    focus.addEventListener('toggle', () => { focusSettingsOpen = focus.open; });
+    const focusSummary = document.createElement('summary'); focusSummary.textContent = T('focus_title'); focus.appendChild(focusSummary);
+    [['hideComments', 'row_hide_comments'], ['hideRecommendations', 'focus_recommendations'], ['hideLiveChat', 'focus_chat'], ['hideEndScreens', 'focus_ends']].forEach(([key, label]) => {
+      const control = row(T(label), key); control.querySelector('input').addEventListener('change', applyCommentVisibility); focus.appendChild(control);
+    });
+    body.appendChild(focus);
     body.appendChild(row(T('row_sbskip'), 'sbSkip'));
 
     const markRow = row(T('row_sbmark'), 'sbMark');
@@ -726,7 +752,7 @@
     applyOpacity();
 
     const libRow = document.createElement('div');
-    libRow.className = 'ytpc-zoomrow';
+    libRow.className = 'ytpc-zoomrow ytpc-actions';
     const bLib = document.createElement('button'); bLib.textContent = T('btn_list');
     const bSave = document.createElement('button'); bSave.textContent = T('btn_save');
     const bShot = document.createElement('button'); bShot.textContent = T('btn_shot');
@@ -738,8 +764,11 @@
     bLib.addEventListener('click', openLibrary);
     bSave.addEventListener('click', () => openSaveDialog());
     bShot.addEventListener('click', takeScreenshot);
-    bBm.addEventListener('click', openBookmarkDialog);
+    bBm.addEventListener('click', () => openBookmarkDialog(false));
+    const bNote = document.createElement('button'); bNote.textContent = T('btn_time_note'); bNote.title = T('note_title');
+    bNote.addEventListener('click', () => openBookmarkDialog(true));
     libRow.appendChild(bLib); libRow.appendChild(bSave); libRow.appendChild(bShot); libRow.appendChild(bBm);
+    libRow.appendChild(bNote);
     body.appendChild(libRow);
 
     const hint = document.createElement('div');
@@ -758,6 +787,8 @@
 
     const settings = document.createElement('details');
     settings.className = 'ytpc-settings';
+    settings.open = playbackSettingsOpen;
+    settings.addEventListener('toggle', () => { playbackSettingsOpen = settings.open; });
     const summary = document.createElement('summary');
     summary.textContent = T('review_settings');
     settings.appendChild(summary);
@@ -766,6 +797,10 @@
     review.className = 'ytpc-review';
     body.insertBefore(review, statusEl);
     body.appendChild(settings);
+    const study = document.createElement('div'); study.className = 'ytpc-study-controls'; study.hidden = true;
+    const studyText = document.createElement('span');
+    const studyStop = document.createElement('button'); studyStop.textContent = T('loop_stop'); studyStop.addEventListener('click', () => stopStudyPlayback());
+    study.append(studyText, studyStop); body.insertBefore(study, statusEl);
     panel.appendChild(body);
     (document.body || document.documentElement).appendChild(panel);
     applyPanelDisplay();
@@ -1140,7 +1175,7 @@
     saveOverlay.querySelector('.ytpc-btn-ok').addEventListener('click', () => {
       const tags = tagInput.value.split(',').map(s => s.trim()).filter(Boolean).slice(0, 30);
       const fresh = libLoad();
-      fresh[meta.id] = {
+      fresh[meta.id] = Object.assign({}, fresh[meta.id] || saved || {}, {
         id: meta.id,
         title: meta.title || (saved && saved.title) || meta.id,
         channel: meta.channel || (saved && saved.channel) || '',
@@ -1149,7 +1184,7 @@
         savedAt: (saved && saved.savedAt) || Date.now(),
         tags,
         notes: notesInput.value.trim().slice(0, 2000),
-      };
+      });
       libWrite(fresh);
       closeSaveDialog();
       setStatus(T('st_saved', { title: fresh[meta.id].title.slice(0, 24) }));
@@ -1195,17 +1230,19 @@
     get stopAt() { return bmStopAt; },
   };
   let bmOverlay = null;
-  function openBookmarkDialog() {
+  let bmPreviousFocus = null;
+  function openBookmarkDialog(pointNote = false) {
     const v = getVideo();
     const meta = getVideoMeta();
-    if (!v || !meta) { setStatus(T('st_no_meta')); return; }
+    if (!v || !meta || isAdShowing() || !currentPageMatchesVideo()) { setStatus(T('st_no_meta')); return; }
     closeBookmarkDialog();
+    bmPreviousFocus = document.activeElement;
     const now = v.currentTime || 0;
     bmOverlay = document.createElement('div');
     bmOverlay.id = 'ytpc-bm-overlay';
     bmOverlay.innerHTML =
       '<div id="ytpc-bm">' +
-        '<h3>' + T('bm_title') + '</h3>' +
+        '<h3>' + T(pointNote ? 'note_title' : 'bm_title') + '</h3>' +
         '<div class="ytpc-save-title"></div>' +
         '<div class="ytpc-bm-timerow">' +
           '<input type="text" id="ytpc-bm-start" value="' + tpFmtTime(now) + '" placeholder="m:ss">' +
@@ -1227,6 +1264,20 @@
     const endInput = bmOverlay.querySelector('#ytpc-bm-end');
     const memoInput = bmOverlay.querySelector('#ytpc-bm-memo');
     const errEl = bmOverlay.querySelector('#ytpc-bm-err');
+    startInput.setAttribute('aria-label', T('local_start')); endInput.setAttribute('aria-label', T('local_end'));
+    memoInput.setAttribute('aria-label', T('note_memo')); errEl.setAttribute('role', 'status');
+    const loopOptions = document.createElement('div'); loopOptions.className = 'ytpc-loop-options';
+    function loopSelect(id, label, values) {
+      const row = document.createElement('label'); row.textContent = T(label);
+      const select = document.createElement('select'); select.id = id;
+      values.forEach(([value, text]) => { const option = document.createElement('option'); option.value = value; option.textContent = text; select.appendChild(option); });
+      row.appendChild(select); loopOptions.appendChild(row); return select;
+    }
+    const countInput = loopSelect('ytpc-loop-count', 'loop_count', [[3, '3'], [2, '2'], [5, '5'], [10, '10'], [0, T('loop_unlimited')]]);
+    const rateInput = loopSelect('ytpc-loop-rate', 'loop_rate', [[1, '1×'], [.5, '0.5×'], [.75, '0.75×'], [1.25, '1.25×'], [1.5, '1.5×'], [2, '2×']]);
+    bmOverlay.querySelector('#ytpc-bm').insertBefore(loopOptions, errEl);
+    if (pointNote) { endInput.parentElement.hidden = true; loopOptions.hidden = true; }
+    endInput.value = tpFmtTime(Math.min(now + 30, Number.isFinite(v.duration) ? v.duration : now + 30));
     bmOverlay.querySelector('#ytpc-bm-now-start').addEventListener('click', () => {
       const vv = getVideo(); if (vv) startInput.value = tpFmtTime(vv.currentTime || 0);
       errEl.textContent = '';
@@ -1236,30 +1287,121 @@
       errEl.textContent = '';
     });
     bmOverlay.querySelector('.ytpc-btn-ok').addEventListener('click', () => {
-      const start = tpParseTime(startInput.value), end = tpParseTime(endInput.value);
-      if (start == null || end == null || end <= start) { errEl.textContent = T('bm_invalid'); return; }
+      const start = tpParseTime(startInput.value), end = pointNote ? start : tpParseTime(endInput.value);
+      if (currentVideoId !== meta.id || isAdShowing() || !Number.isFinite(start) || !Number.isFinite(end) || start < 0 ||
+          (!pointNote && end <= start) || (Number.isFinite(v.duration) && (start >= v.duration || end > v.duration)) || (pointNote && !memoInput.value.trim())) {
+        errEl.textContent = T('study_invalid'); return;
+      }
       const list = bmLoad().slice();
       list.unshift({
-        id: 'bm' + Date.now().toString(36),
+        id: 'bm' + Date.now().toString(36) + Math.random().toString(36).slice(2),
+        kind: pointNote ? 'note' : 'range', repeatCount: Number(countInput.value), rate: Number(rateInput.value),
         videoId: meta.id, title: meta.title || meta.id,
-        start: Math.floor(start), end: Math.floor(end),
+        start, end,
         memo: memoInput.value.trim().slice(0, 500),
         createdAt: Date.now(),
       });
       bmWrite(list);
       closeBookmarkDialog();
-      setStatus(T('bm_saved'));
+      setStatus(T(pointNote ? 'note_saved' : 'bm_saved'));
     });
     bmOverlay.querySelector('.ytpc-btn-cancel').addEventListener('click', closeBookmarkDialog);
     bmOverlay.addEventListener('click', e => { if (e.target === bmOverlay) closeBookmarkDialog(); });
     document.body.appendChild(bmOverlay);
+    const dialog = bmOverlay.querySelector('#ytpc-bm');
+    dialog.setAttribute('role', 'dialog'); dialog.setAttribute('aria-modal', 'true');
+    dialog.querySelector('h3').id = 'ytpc-bm-title'; dialog.setAttribute('aria-labelledby', 'ytpc-bm-title');
+    document.addEventListener('keydown', bookmarkKeys);
+    (pointNote ? memoInput : startInput).focus();
   }
   function closeBookmarkDialog() {
     if (bmOverlay) { bmOverlay.remove(); bmOverlay = null; }
+    document.removeEventListener('keydown', bookmarkKeys);
+    if (bmPreviousFocus && bmPreviousFocus.isConnected) bmPreviousFocus.focus({ preventScroll: true });
+    bmPreviousFocus = null;
   }
-  function tpBmJump(b) {
-    if (b.end > b.start) bmStopAt = { videoId: b.videoId, end: b.end };
-    location.href = 'https://www.youtube.com/watch?v=' + b.videoId + '&t=' + Math.floor(b.start) + 's';
+  function bookmarkKeys(event) {
+    if (!bmOverlay) return;
+    if (event.key === 'Escape') { event.preventDefault(); closeBookmarkDialog(); return; }
+    if (event.key !== 'Tab') return;
+    const controls = [...bmOverlay.querySelectorAll('input, select, button')].filter(el => !el.disabled && !el.closest('[hidden]'));
+    const first = controls[0], last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+  let studyRate = null;
+  let pendingPlayback = null;
+  function stopStudyPlayback() {
+    if (studyRate) {
+      if (isAdShowing() && adState) adState.rate = studyRate.previous;
+      else try { studyRate.video.playbackRate = studyRate.previous; } catch (e) {}
+    }
+    studyRate = null; bmStopAt = null; renderStudyControl();
+  }
+  function protectExplicitSeek(time) {
+    allSegments().filter(seg => time >= seg.start && time < seg.end).forEach(seg => skippedExceptions.push({start:seg.start,end:seg.end}));
+  }
+  function tpBmJump(b, loop = false) {
+    if (!b || !Number.isFinite(b.start) || b.start < 0 || !/^[\w-]+$/.test(b.videoId)) return;
+    if (getVideoId() !== b.videoId) {
+      try { sessionStorage.setItem('ytpc-playback-request', JSON.stringify({ videoId: b.videoId, id: b.id, loop, expires: Date.now() + 90000 })); } catch (e) {}
+      location.href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(b.videoId) + '&t=' + Math.floor(b.start) + 's';
+      return;
+    }
+    const v = getVideo();
+    if (!v || isAdShowing() || !currentPageMatchesVideo() || !Number.isFinite(v.duration) || b.start >= v.duration) { setStatus(T('study_unavailable')); return; }
+    stopStudyPlayback(); protectExplicitSeek(b.start);
+    if (b.end > b.start) {
+      bmStopAt = { bookmarkId: b.id, videoId: b.videoId, start: b.start, end: Math.min(b.end, v.duration), loop,
+        remaining: [0,2,3,5,10].includes(b.repeatCount) ? b.repeatCount : 3 };
+      if (loop) {
+        const rate = [.5,.75,1,1.25,1.5,2].includes(b.rate) ? b.rate : 1;
+        studyRate = { video: v, previous: v.playbackRate }; v.playbackRate = rate;
+      }
+    }
+    v.currentTime = b.start;
+    if (loop && bmStopAt) { const promise = v.play(); if (promise && promise.catch) promise.catch(() => setStatus(T('study_play'))); }
+    renderStudyControl();
+  }
+  function readPendingPlayback(vid) {
+    pendingPlayback = null;
+    try {
+      const request = JSON.parse(sessionStorage.getItem('ytpc-playback-request') || 'null');
+      sessionStorage.removeItem('ytpc-playback-request');
+      if (request && request.videoId === vid && request.expires > Date.now()) pendingPlayback = request;
+    } catch (e) {}
+  }
+  function handleStudyPlayback() {
+    const v = getVideo();
+    if (!v || isAdShowing() || !currentPageMatchesVideo() || !Number.isFinite(v.duration)) return;
+    bindStudyVideo(v);
+    if (pendingPlayback) {
+      const request = pendingPlayback; pendingPlayback = null;
+      const mark = bmLoad().find(b => b.id === request.id && b.videoId === currentVideoId);
+      if (mark) tpBmJump(mark, request.loop === true);
+    }
+    if (bmStopAt && bmStopAt.videoId === currentVideoId && ((!v.paused && v.currentTime >= bmStopAt.end) || v.ended)) {
+      if (bmStopAt.loop && (bmStopAt.remaining === 0 || --bmStopAt.remaining > 0)) {
+        v.currentTime = bmStopAt.start;
+        if (v.paused) { const promise = v.play(); if (promise && promise.catch) promise.catch(() => setStatus(T('study_play'))); }
+      }
+      else { v.pause(); stopStudyPlayback(); setStatus(T('bm_stop_end')); }
+    }
+    renderStudyControl();
+  }
+  function renderStudyControl() {
+    const box = document.querySelector('.ytpc-study-controls'); if (!box) return;
+    box.hidden = !bmStopAt || !bmStopAt.loop || bmStopAt.videoId !== currentVideoId;
+    if (!box.hidden) box.querySelector('span').textContent = T('loop_active', { start: tpFmtTime(bmStopAt.start), end: tpFmtTime(bmStopAt.end), count: bmStopAt.remaining || T('loop_unlimited') });
+  }
+  const studyVideos = new WeakSet();
+  function bindStudyVideo(video) {
+    if (studyVideos.has(video)) return;
+    studyVideos.add(video);
+    video.addEventListener('seeking', () => {
+      if (bmStopAt && bmStopAt.loop && !isAdShowing() && video === getVideo() &&
+          (video.currentTime < bmStopAt.start - .05 || video.currentTime > bmStopAt.end + .25)) stopStudyPlayback();
+    });
   }
 
   /* ---------- 라이브러리 목록 ---------- */
@@ -1419,9 +1561,10 @@
       row.className = 'ytpc-bmrow';
       row.innerHTML =
         '<div class="ytpc-bmrow-main"><div class="ytpc-bmrow-title"></div>' +
-        '<div class="ytpc-bmrow-time">' + tpFmtTime(b.start) + ' – ' + tpFmtTime(b.end) + '</div>' +
+        '<div class="ytpc-bmrow-time">' + tpFmtTime(b.start) + (b.kind === 'note' ? '' : ' – ' + tpFmtTime(b.end)) + '</div>' +
         (b.memo ? '<div class="ytpc-bmrow-memo"></div>' : '') + '</div>' +
         '<div class="ytpc-bmrow-actions"><button data-act="jump">' + T('bm_jump') + '</button>' +
+        (b.end > b.start ? '<button data-act="loop">' + T('loop_start') + '</button>' : '') +
         '<button data-act="del">' + T('bm_del') + '</button></div>';
       row.querySelector('.ytpc-bmrow-title').textContent = b.title;
       const memoEl = row.querySelector('.ytpc-bmrow-memo');
@@ -1429,8 +1572,11 @@
       row.querySelector('[data-act="jump"]').addEventListener('click', () => {
         closeLibrary(); tpBmJump(b);
       });
+      const loopButton = row.querySelector('[data-act="loop"]');
+      if (loopButton) loopButton.addEventListener('click', () => { closeLibrary(); tpBmJump(b, true); });
       row.querySelector('[data-act="del"]').addEventListener('click', () => {
         if (!confirm(T('confirm_del_item', { title: b.title.slice(0, 30) }))) return;
+        if (bmStopAt && bmStopAt.bookmarkId === b.id) stopStudyPlayback();
         bmWrite(bmLoad().filter(x => x.id !== b.id));
         renderLibList();
       });
@@ -1462,6 +1608,16 @@
     el.querySelector('[data-a="lib"]').addEventListener('click', openLibrary);
     el.querySelector('[data-a="edit"]').addEventListener('click', () => openSaveDialog(v));
     el.querySelector('[data-a="hide"]').addEventListener('click', hideRecall);
+    const offer = resumeOffer && resumeOffer.videoId === vid ? resumeOffer.position : null;
+    if (Number.isFinite(offer) && offer > 3 && (!v.duration || offer < v.duration - 3)) {
+      const resume = document.createElement('button'); resume.dataset.a = 'resume'; resume.textContent = T('resume_at', { time: tpFmtTime(offer) });
+      resume.addEventListener('click', () => {
+        const video = getVideo(); if (!video || isAdShowing() || !currentPageMatchesVideo() || !Number.isFinite(video.duration)) return;
+        stopStudyPlayback(); protectExplicitSeek(offer); video.currentTime = Math.min(offer, Math.max(0, video.duration - 3));
+        resumeOffer = null; resume.remove();
+      });
+      el.querySelector('.ytpc-recall-btns').prepend(resume);
+    }
     p.appendChild(el);
   }
   function checkRecall(vid) {
@@ -1473,6 +1629,21 @@
       if (getPlayer()) { clearInterval(iv); showRecall(vid); }
       else if (++tries > 16) clearInterval(iv);
     }, 300);
+  }
+
+  let watchSample = null, lastWatchWrite = 0, resumeOffer = null;
+  function flushWatchPosition() {
+    if (!watchSample || !library[watchSample.videoId]) return;
+    const sample = watchSample, saved = library[sample.videoId];
+    if (saved.lastPosition === sample.position) return;
+    libWrite(Object.assign({}, library, { [sample.videoId]: Object.assign({}, saved, { lastPosition: sample.position, lastWatchedAt: Date.now() }) }));
+    lastWatchWrite = Date.now();
+  }
+  function rememberWatchPosition() {
+    const v = getVideo();
+    if (!currentVideoId || !library[currentVideoId] || !v || isAdShowing() || !currentPageMatchesVideo() || !Number.isFinite(v.duration) || (!v.ended && v.paused)) return;
+    watchSample = { videoId: currentVideoId, position: v.ended || v.currentTime >= v.duration - 3 ? 0 : Math.floor(v.currentTime) };
+    if (Date.now() - lastWatchWrite >= 5000) flushWatchPosition();
   }
 
   /* ================= 메인 루프 ================= */
@@ -1493,15 +1664,8 @@
     handleAds();
     handleSponsorSkip();
     renderSegmentReview();
-    // 구간 북마크 점프 후 끝에서 자동 일시정지
-    if (bmStopAt && currentVideoId === bmStopAt.videoId) {
-      const pv = getVideo();
-      if (pv && !pv.paused && pv.currentTime >= bmStopAt.end) {
-        pv.pause();
-        bmStopAt = null;
-        setStatus(T('bm_stop_end'));
-      }
-    }
+    handleStudyPlayback();
+    rememberWatchPosition();
     // 패널이 유튜브 리렌더로 사라졌으면 복구
     if (!document.getElementById('ytpc-panel')) {
       try { buildPanel(); } catch (e) {}
@@ -1533,6 +1697,7 @@
       if (p) p.style.display = document.fullscreenElement ? 'none' : '';
     });
     document.addEventListener('keydown', onHotkey);
+    window.addEventListener('pagehide', flushWatchPosition);
     // 팝업에서 언어 변경 → 패널 즉시 리빌드
     try {
       if (chrome.storage.onChanged && chrome.storage.onChanged.addListener) {
@@ -1544,12 +1709,15 @@
             closeSaveDialog(); closeLibrary(); hideRecall(); closeBookmarkDialog();
             try { buildPanel(); } catch (e) {}
           }
+          if (area === 'local' && changes && changes.tp_library) library = (changes.tp_library.newValue && changes.tp_library.newValue.videos) || {};
+          if (area === 'local' && changes && changes.tp_bookmarks) bookmarks = Array.isArray(changes.tp_bookmarks.newValue) ? changes.tp_bookmarks.newValue : [];
           // 팝업에서 설정 변경 → 즉시 반영 (새로고침 불필요)
           if (area === 'local' && changes && changes.tp_cfg) {
             const oldHk = JSON.stringify((cfg.hotkeys || {}));
             cfg = Object.assign({}, DEFAULTS, changes.tp_cfg.newValue || {});
             cfg.cats = Object.assign({}, DEFAULTS.cats, cfg.cats || {});
             applyPanelDisplay();
+            applyCommentVisibility();
             refreshSkipUI();
             // 단축키가 바뀌면 힌트 문구 갱신을 위해 패널 리빌드
             if (JSON.stringify(cfg.hotkeys || {}) !== oldHk) {

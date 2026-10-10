@@ -459,7 +459,7 @@ function ProductDemo() {
             <div className={`segment-panel ${panelCollapsed ? "is-collapsed" : ""} ${panelWide ? "is-wide" : ""}`}>
               <div className="segment-panel-head">
                 <Logo small />
-                <span className="segment-panel-version">v1.11.0</span>
+                <span className="segment-panel-version">v1.12.0</span>
                 <div className="segment-panel-actions">
                   {!panelCollapsed && <button className="icon-button" aria-label={panelWide ? t("패널 작게 보기") : t("패널 넓게 보기")} onClick={() => setPanelWide(!panelWide)}>{panelWide ? <ArrowDownLeft size={15} /> : <ArrowUpRight size={15} />}</button>}
                   <button className="icon-button" aria-controls="demo-panel-content" aria-expanded={!panelCollapsed} aria-label={panelCollapsed ? t("패널 펼치기") : t("패널 접기")} onClick={() => setPanelCollapsed(!panelCollapsed)}>{panelCollapsed ? <Plus size={16} /> : <Minus size={16} />}</button>
@@ -877,6 +877,8 @@ function Features() {
           </FeatureCard>
         </div>
         <div className="extras reveal">
+          <span><RotateCcw size={17} /> {t("구간 반복·타임스탬프 메모")}</span>
+          <span><Play size={17} /> {t("저장한 영상 이어 보기")}</span>
           <span><RotateCcw size={17} /> {t("스킵 되돌리기")}</span>
           <span><SlidersHorizontal size={17} /> {t("채널별·종류별 스킵 설정")}</span>
           <span><Bookmark size={17} /> {t("내 스킵 구간 저장")}</span>
@@ -884,7 +886,7 @@ function Features() {
             <SlidersHorizontal size={17} /> {t("패널 위치·투명도 조절")}
           </span>
           <span>
-            <ScanLine size={17} /> {t("댓글 숨기기")}
+            <ScanLine size={17} /> {t("추천·채팅·엔드스크린 숨기기")}
           </span>
           <span>
             <Download size={17} /> {t("JSON 백업·복원")}
@@ -921,7 +923,7 @@ function Installation() {
           <ArrowUpRight size={17} />
         </ButtonLink>
         <small className="install-note">
-          {t("무료 · v1.11.0 · main 브랜치 ZIP으로 수동 설치")}
+          {t("무료 · v1.12.0 · main 브랜치 ZIP으로 수동 설치")}
         </small>
         <p className="install-update">{t("업데이트 전 백업하고, 기존 폴더를 교체한 뒤 확장과 YouTube를 새로고침하세요.")}</p>
         <a
@@ -1161,7 +1163,7 @@ function App({ locale, onLocaleChange }) {
               target="_blank"
               rel="noreferrer"
             >
-              <span>NEW</span> {t("v1.11.0 · 스킵도 내 방식대로")}{" "}
+              <span>NEW</span> {t("v1.12.0 · 집중하고, 다시 보고")}{" "}
               <ChevronRight size={14} />
             </a>
             <h1>
@@ -1483,11 +1485,11 @@ function PrivacyPage({ locale, onLocaleChange }) {
           ← {t("홈으로 돌아가기")}
         </a>
         <h1>{t("개인정보처리방침")}</h1>
-        <p className="policy-date">{t("시행일: 2026년 9월 27일")}</p>
+        <p className="policy-date">{t("최종 업데이트: 2026년 10월 10일")}</p>
         {sections.map(([title, body]) => (
           <section key={title}>
             <h2>{t(title)}</h2>
-            <p>{t(body)}</p>
+            <p>{t(body)}{title === "2. 브라우저에 저장되는 정보" && <> {t("채널별 설정, 직접 지정한 스킵 구간, 구간 반복 옵션, 시점 메모와 저장한 영상의 시청 위치도 브라우저에 보관합니다. 저장하지 않은 영상의 시청 기록은 만들지 않습니다.")} </>}</p>
           </section>
         ))}
         <div className="policy-contact">

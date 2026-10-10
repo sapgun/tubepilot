@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.11.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.12.0-blue" alt="version">
   <img src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Brave-orange" alt="platform">
   <img src="https://img.shields.io/badge/languages-ko%20%7C%20en%20%7C%20ja%20%7C%20es%20%7C%20pt-purple" alt="languages">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
@@ -36,6 +36,10 @@ TubePilot añade segmentos, saltos y una biblioteca local al reproductor origina
 
 | Función | Descripción |
 |---|---|
+| Repetición de tramos | Reproduce tramos guardados 2/3/5/10 veces o continuamente a 0,5–2×. Detener, completar o cambiar de vídeo restaura la velocidad anterior. El tramo de estudio tiene prioridad sobre los saltos automáticos. |
+| Seguir viendo | Los vídeos guardados recuerdan la posición localmente y ofrecen un botón para continuar en la próxima visita. No hay salto automático ni historial de vídeos no guardados. |
+| Notas con tiempo | Guarda una nota en un momento específico; busca y salta desde la biblioteca de tramos/notas. Las notas puntuales no programan pausa al final de un tramo. |
+| Concentración ampliada | Oculta comentarios, recomendaciones, chat en directo y pantallas finales por separado. Todo empieza desactivado y se guardan las preferencias. Los controles del vídeo siguen visibles. |
 | Deshacer salto | El aviso permite volver durante seis segundos. El tramo y los tramos superpuestos no se saltan automáticamente en esta visita. |
 | Acciones por categoría | Elige automático, manual o solo marcar por categoría. También se aplica el control general de salto automático. |
 | Reglas por canal | Usa ajustes generales, manual o solo marcar para el canal actual. Se identifica por su enlace, no por el nombre. |
@@ -73,7 +77,7 @@ Antes de actualizar, exporta una copia desde la biblioteca. Sustituye los archiv
 
 Los segmentos proceden de la comunidad mediante la [API de SponsorBlock](https://wiki.sponsor.ajay.app/w/API_Docs). No se analiza el contenido para descubrir anuncios sin reportar. La ausencia de datos y los errores de consulta se muestran por separado. Los anuncios de YouTube y los patrocinios dentro del vídeo tienen tratamientos distintos. Los cambios de YouTube pueden afectar al funcionamiento; no se garantiza compatibilidad con otras herramientas de anuncios. Sin afiliación a YouTube, ReVanced o SponsorBlock.
 
-El [userscript](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js) **1.1.2** se mantiene separado de la extensión **1.11.0**. Se instala con Tampermonkey/Violentmonkey y no incluye el nuevo panel ni todas las funciones de la extensión. Firefox/Safari no están verificados. No ejecutes ambas ediciones a la vez.
+El [userscript](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js) **1.1.2** se mantiene separado de la extensión **1.12.0**. Se instala con Tampermonkey/Violentmonkey y no incluye el nuevo panel ni todas las funciones de la extensión. Firefox/Safari no están verificados. No ejecutes ambas ediciones a la vez.
 
 Los ajustes, biblioteca y marcadores se guardan localmente. Las consultas envían el ID del vídeo a `sponsor.ajay.app`, que también recibe metadatos normales de red. No hay sincronización en la nube. Las copias exportadas incluyen vídeos y notas.
 

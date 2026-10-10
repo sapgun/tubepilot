@@ -485,12 +485,12 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   ok('북마크 다이얼로그 열림', !!document.querySelector('#ytpc-bm-overlay'));
   const bmStartEl = document.querySelector('#ytpc-bm-start');
   ok('북마크 시작점 기본값', bmStartEl && bmStartEl.value === '1:05', bmStartEl && bmStartEl.value);
-  document.querySelector('#ytpc-bm-end').value = '2:00';
+  document.querySelector('#ytpc-bm-end').value = '1:20';
   document.querySelector('#ytpc-bm-memo').value = '하이라이트';
   document.querySelector('#ytpc-bm .ytpc-btn-ok').click();
   await sleep(50);
   const savedBms = store.tp_bookmarks || [];
-  ok('북마크 저장', savedBms.length === 1 && savedBms[0].start === 65 && savedBms[0].end === 120 &&
+  ok('북마크 저장', savedBms.length === 1 && savedBms[0].start === 65 && savedBms[0].end === 80 &&
     savedBms[0].memo === '하이라이트' && savedBms[0].videoId === 'TEST1234567',
     JSON.stringify(savedBms[0]));
   ok('북마크 저장 안내', document.querySelector('#ytpc-panel .ytpc-status').textContent.includes('북마크'),
@@ -523,7 +523,7 @@ const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', nam
   // 점프 → 종료점 예약 (jsdom 내비게이션 불가라 stopAt으로 검증)
   bmRows[0].querySelector('[data-act="jump"]').click();
   await sleep(30);
-  ok('북마크 점프: 종료점 예약', BM.stopAt && BM.stopAt.end === 120 && BM.stopAt.videoId === 'TEST1234567',
+  ok('북마크 점프: 종료점 예약', BM.stopAt && BM.stopAt.end === 80 && BM.stopAt.videoId === 'TEST1234567',
     JSON.stringify(BM.stopAt));
   // 자동 일시정지: end를 넘기면 pause
   let pausedCalled = false;

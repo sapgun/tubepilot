@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.11.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.12.0-blue" alt="version">
   <img src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Brave-orange" alt="platform">
   <img src="https://img.shields.io/badge/languages-ko%20%7C%20en%20%7C%20ja%20%7C%20es%20%7C%20pt-purple" alt="languages">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
@@ -36,6 +36,10 @@ TubePilot은 데스크톱의 원래 YouTube 플레이어에 작은 제어 패널
 
 | 기능 | 동작 |
 |---|---|
+| 구간 반복 | 저장한 구간을 2·3·5·10회 또는 계속 반복하고 0.5–2배속을 지정합니다. 중지·완료·영상 이동 시 이전 배속을 복원합니다. 학습 구간 재생 중에는 자동 구간 스킵보다 지정한 구간을 우선합니다. |
+| 이어 보기 | 저장한 영상의 시청 위치를 로컬에 기억하고 재방문 시 이어 보기 버튼을 제공합니다. 자동으로 이동하지 않으며 저장하지 않은 영상의 시청 기록은 만들지 않습니다. |
+| 타임스탬프 메모 | 특정 시점에 메모를 남기고 구간·메모 라이브러리에서 검색·이동합니다. 시점 메모는 구간 종료 일시정지를 예약하지 않습니다. |
+| 집중 모드 확장 | 댓글·추천 영상·실시간 채팅·엔드스크린을 각각 숨깁니다. 기본값은 모두 끔이며 선택을 저장합니다. 플레이어 조작 버튼은 유지합니다. |
 | 스킵 되돌리기 | 스킵 후 6초 동안 되돌리기로 이전 시점에 돌아갑니다. 이번 시청에서는 해당 구간과 겹치는 구간을 자동 스킵하지 않습니다. |
 | 종류별 동작 | 각 구간 종류에 자동·수동·표시만을 선택합니다. 전체 자동 스킵 설정도 적용됩니다. |
 | 채널별 설정 | 현재 채널에 전체 설정·수동·표시만을 지정합니다. 채널 이름 대신 채널 링크로 구분합니다. |
@@ -73,7 +77,7 @@ TubePilot은 데스크톱의 원래 YouTube 플레이어에 작은 제어 패널
 
 구간 정보는 [SponsorBlock 커뮤니티 API](https://wiki.sponsor.ajay.app/w/API_Docs)에서 가져옵니다. TubePilot이 영상 내용을 분석해 미등록 광고를 찾아내는 방식은 아닙니다. 구간이 없으면 커뮤니티 제보가 없을 수 있고, 조회 실패는 별도 상태로 표시합니다. YouTube가 재생하는 광고와 영상 안의 스폰서 구간은 서로 다른 방식으로 처리합니다. 모든 광고 제거를 보장하지 않으며 YouTube·ReVanced·SponsorBlock과 제휴된 제품이 아닙니다.
 
-대안인 [유저스크립트](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js)는 **1.1.2**로, **1.11.0** 확장 프로그램과 별도로 관리됩니다. Tampermonkey·Violentmonkey 같은 매니저로 설치하세요. 새 구간 패널, 패널 크기·접힘 저장 및 확장의 모든 기능이 포함된 버전이 아닙니다. Firefox·Safari 지원은 매니저와 브라우저에 따라 달라지며 여기서 호환성을 검증하지 않았습니다. 확장과 유저스크립트는 동시에 실행하지 마세요.
+대안인 [유저스크립트](https://raw.githubusercontent.com/sapgun/tubepilot/main/tubepilot.user.js)는 **1.1.2**로, **1.12.0** 확장 프로그램과 별도로 관리됩니다. Tampermonkey·Violentmonkey 같은 매니저로 설치하세요. 새 구간 패널, 패널 크기·접힘 저장 및 확장의 모든 기능이 포함된 버전이 아닙니다. Firefox·Safari 지원은 매니저와 브라우저에 따라 달라지며 여기서 호환성을 검증하지 않았습니다. 확장과 유저스크립트는 동시에 실행하지 마세요.
 
 ## 개인정보와 권한
 

@@ -1,5 +1,10 @@
 // Source language: Korean. Columns: English, Japanese, Portuguese, Spanish.
 export const messages = {
+"최종 업데이트: 2026년 10월 10일": ["Last updated: October 10, 2026", "最終更新: 2026年10月10日", "Última atualização: 10 de outubro de 2026", "Última actualización: 10 de octubre de 2026"],
+"구간 반복·타임스탬프 메모": ["Range loops and timestamp notes", "区間リピート・時点メモ", "Repetição de trechos e notas com tempo", "Repetición de tramos y notas con tiempo"],
+"저장한 영상 이어 보기": ["Continue saved videos", "保存した動画の続きから見る", "Continue vídeos salvos", "Continúa vídeos guardados"],
+"추천·채팅·엔드스크린 숨기기": ["Hide recommendations, chat and end screens", "おすすめ・チャット・終了画面を非表示", "Oculte recomendações, chat e telas finais", "Oculta recomendaciones, chat y pantallas finales"],
+"채널별 설정, 직접 지정한 스킵 구간, 구간 반복 옵션, 시점 메모와 저장한 영상의 시청 위치도 브라우저에 보관합니다. 저장하지 않은 영상의 시청 기록은 만들지 않습니다.": ["Channel rules, private skip ranges, loop options, timestamp notes and saved-video positions also stay in your browser. Unsaved videos do not create watch-history entries.", "チャンネル設定、自分のスキップ区間、リピート設定、時点メモ、保存動画の視聴位置もブラウザに保存します。未保存動画の視聴履歴は作りません。", "Regras por canal, trechos privados, opções de repetição, notas com tempo e posições de vídeos salvos também ficam no navegador. Vídeos não salvos não criam histórico.", "Las reglas por canal, tramos privados, opciones de repetición, notas con tiempo y posiciones de vídeos guardados también quedan en el navegador. Los vídeos no guardados no crean historial."],
 "스킵 되돌리기": ["Undo a skip", "スキップを元に戻す", "Desfazer um pulo", "Deshacer un salto"],
 "채널별·종류별 스킵 설정": ["Channel and category skip rules", "チャンネル・種類別スキップ設定", "Regras por canal e categoria", "Reglas por canal y categoría"],
 "내 스킵 구간 저장": ["Save your own skip ranges", "自分のスキップ区間を保存", "Salve seus próprios trechos", "Guarda tus propios tramos"],
@@ -574,7 +579,7 @@ export const messages = {
     "Baixar versão mais recente",
     "Descargar última versión",
   ],
-  "무료 · v1.11.0 · main 브랜치 ZIP으로 수동 설치": ["Free · v1.11.0 · Install from the main branch ZIP", "無料 · v1.11.0 · mainのZIPから手動インストール", "Grátis · v1.11.0 · Instale pelo ZIP da main", "Gratis · v1.11.0 · Instala desde el ZIP de main"],
+  "무료 · v1.12.0 · main 브랜치 ZIP으로 수동 설치": ["Free · v1.12.0 · Install from the main branch ZIP", "無料 · v1.12.0 · mainのZIPから手動インストール", "Grátis · v1.12.0 · Instale pelo ZIP da main", "Gratis · v1.12.0 · Instala desde el ZIP de main"],
   "유저스크립트 설치 방법": [
     "Prefer a userscript?",
     "ユーザースクリプトの導入方法",
@@ -767,7 +772,7 @@ export const messages = {
   ],
   "메뉴 닫기": ["Close menu", "メニューを閉じる", "Fechar menu", "Cerrar menú"],
   "메뉴 열기": ["Open menu", "メニューを開く", "Abrir menu", "Abrir menú"],
-  "v1.11.0 · 스킵도 내 방식대로": ["v1.11.0 · Skip on your terms", "v1.11.0 · スキップも自分らしく", "v1.11.0 · Pule do seu jeito", "v1.11.0 · Salta a tu manera"],
+"v1.12.0 · 집중하고, 다시 보고": ["v1.12.0 · Focus, learn, revisit", "v1.12.0 · 集中して、また見る", "v1.12.0 · Foco, estudo e revisão", "v1.12.0 · Concentración, estudio y repaso"],
   "시청의 주도권을,": [
     "Your YouTube.",
     "見る体験を、",
